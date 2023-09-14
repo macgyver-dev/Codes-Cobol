@@ -1,0 +1,25 @@
+       IDENTIFICATION DIVISION.                                         00010002
+       PROGRAM-ID. CPROG1.                                              00020011
+       AUTHOR. JULIEN DUBROMEZ.                                         00030002
+       ENVIRONMENT DIVISION.                                            00040002
+       CONFIGURATION SECTION.                                           00050002
+       SPECIAL-NAMES.                                                   00060002
+           DECIMAL-POINT IS COMMA.                                      00070002
+       INPUT-OUTPUT SECTION.                                            00080002
+       FILE-CONTROL.                                                    00090002
+       DATA DIVISION.                                                   00100002
+       WORKING-STORAGE SECTION.                                         00110002
+       COPY DFHAID.                                                     00120012
+       COPY DFHBMSCA.                                                   00130012
+       01 WS-MESSAGE PIC X(40).                                         00140005
+       01 WS-LENGHT PIC S9(4) COMP.                                     00150008
+       PROCEDURE DIVISION.                                              00160002
+           MOVE 'HELLO WORLD' TO WS-MESSAGE                             00170006
+           MOVE +12 TO WS-LENGHT                                        00180009
+           EXEC CICS SEND TEXT                                          00190006
+            FROM(WS-MESSAGE)                                            00200010
+            LENGHT(WS-LENGHT)                                           00210006
+           END-EXEC                                                     00220006
+           EXEC CICS RETURN                                             00230006
+           END-EXEC                                                     00240006
+           STOP RUN.                                                    00250006

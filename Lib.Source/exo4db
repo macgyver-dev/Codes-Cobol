@@ -1,0 +1,71 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. EXO4DB.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MSG-ERR.
+           05 ERR-LEN  PIC S9(4) COMP VALUE +720.
+           05 ERR-TXT  PIC X(72) OCCURS 10 TIMES  INDEXED BY IX-ERR.
+       77 LEN-ERR-TXT  PIC S9(9) COMP VALUE +72.
+           EXEC SQL
+             INCLUDE SQLCA
+           END-EXEC.
+
+           EXEC SQL
+             INCLUDE TEMPL
+           END-EXEC.
+           EXEC SQL
+                DECLARE C1 CURSOR
+                FOR
+                SELECT NEMP,NOM,PRENOM,SALAIRE,DEPT
+                FROM TEMPL
+                WHERE DEPT = 'FAT'
+                FOR
+                UPDATE OF SALAIRE
+           END-EXEC.
+
+       77 WS-IND PIC S9(4) COMP.
+       PROCEDURE DIVISION.
+       S10-INITIALISE SECTION.
+           PERFORM MD01-INIT
+           PERFORM MD02-TRT THRU MD06-ERREUR UNTIL SQLCODE = 100.
+
+       MD01-INIT.
+           EXEC SQL
+                OPEN C1
+           END-EXEC.
+       MD02-TRT.
+           EXEC SQL
+                FETCH C1
+                INTO :NEMP,:NOM,:PRENOM,:SALAIRE:WS-IND,:DEPT
+           END-EXEC
+           PERFORM MD06-ERREUR.
+       MD03-TRT.
+           IF WS-IND = -1
+              MOVE 0 TO SALAIRE
+           END-IF
+           IF SQLCODE NOT = 100
+              DISPLAY NEMP '  ' NOM ' ' PRENOM  '  '  SALAIRE '  ' DEPT
+           END-IF.
+       MD04-TRT.
+           IF SQLCODE = 100
+              EXEC SQL
+                CLOSE C1
+              END-EXEC
+              STOP RUN
+           END-IF.
+       MD05-TRT.
+           EXEC SQL
+                UPDATE TEMPL
+                SET SALAIRE = :SALAIRE * 1.1
+                WHERE CURRENT OF C1
+           END-EXEC.
+       MD06-ERREUR.
+           IF SQLCODE < ZERO AND SQLCODE NOT = -305
+              CALL 'DSNTIAR' USING SQLCA MSG-ERR LEN-ERR-TXT
+              DISPLAY MSG-ERR
+            GOBACK
+           END-IF.

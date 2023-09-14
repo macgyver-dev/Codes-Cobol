@@ -1,0 +1,59 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. EXO1DB.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MSG-ERR.
+           05 ERR-LEN  PIC S9(4) COMP VALUE +720.
+           05 ERR-TXT  PIC X(72) OCCURS 10 TIMES  INDEXED BY IX-ERR.
+       77 LEN-ERR-TXT  PIC S9(9) COMP VALUE +72.
+           EXEC SQL
+             INCLUDE SQLCA
+           END-EXEC.
+
+           EXEC SQL
+             INCLUDE TEMPL
+           END-EXEC.
+       77 WS-SALAIRE   PIC ZS9(16)V9(2) USAGE COMP-3.
+       77 IND-SALAIRE  PIC S9(4) COMP VALUE +0.
+      *---------------------------------
+       PROCEDURE DIVISION.
+            EXEC SQL
+              SELECT
+               NEMP,
+               NAME,
+              PRENOM,
+              QUAL,
+            INTO
+             :NEMP,
+             :NAME,
+             :PRENOM,
+             :QUAL,
+             FROM TEMPL
+            END-EXEC
+
+            EXEC SQL
+             SELECT SUM(SALAIRE) AS SALAIRE
+             INTO :WS-SALAIRE:IND-SALAIRE
+             FROM TEMPL
+            END-EXEC.
+
+      *       TEST DE LA VALEUR NULL
+              IF IND-SALAIRE = -1 THEN
+                 MOVE 0.00 TO SALAIRE
+              END-IF
+
+              IF SQLCODE NOT = 0
+                 PERFORM ERREUR
+              END-IF
+      *
+      *=====>   DISPLAY LIGNE DE LA TABLE..................
+      *
+           DISPLAY 'TOTAL DES SALAIRE EST ' WS-SALAIRE
+            GOBACK.
+      *
+       ERREUR.
+            CALL 'DSNTIAR' USING SQLCA MSG-ERR LEN-ERR-TXT.
+            DISPLAY MSG-ERR.
+            GOBACK.
+

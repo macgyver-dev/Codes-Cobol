@@ -1,0 +1,25 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. MONPROG5.                                            00020001
+       AUTHOR. Julien Dubromez.                                         00030000
+                                                                        00040000
+       ENVIRONMENT DIVISION.                                            00050000
+       CONFIGURATION SECTION.                                           00060000
+       SPECIAL-NAMES.                                                   00070000
+            DECIMAL-POINT IS COMMA.                                     00080006
+       DATA DIVISION.                                                   00090000
+       WORKING-STORAGE SECTION.                                         00100000
+       01  ENREG.                                                       00110001
+            05 NBR PIC 99.                                              00120001
+            05 FILLER PIC x(78).                                        00130001
+       77   SOMME PIC 99 VALUE 0.                                       00140000
+                                                                        00150000
+       PROCEDURE DIVISION.                                              00160000
+       TRAITEMENT.                                                      00170000
+           ACCEPT ENREG FROM LISTE                                      00180006
+           IF NBR = 99                                                  00190003
+               DISPLAY 'LE TOTAL DES NOMBRE EST DE ' SOMME              00200003
+                STOP RUN                                                00210003
+           END-IF                                                       00220003
+           COMPUTE SOMME = SOMME + NBR                                  00230003
+                                                                        00240002
+           GO TO TRAITEMENT.                                            00250003

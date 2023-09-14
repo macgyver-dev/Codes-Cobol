@@ -1,0 +1,54 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. MONPROG3.                                            00020001
+       AUTHOR. Julien Dubromez.                                         00030000
+                                                                        00040000
+       ENVIRONMENT DIVISION.                                            00050000
+       CONFIGURATION SECTION.                                           00060000
+       SPECIAL-NAMES.                                                   00070000
+            DECIMAL-POINT IS COMMA.                                     00080000
+       INPUT-OUTPUT SECTION.                                            00090000
+       FILE-CONTROL.                                                    00100000
+            SELECT LISTE ASSIGN TO DDLISTE.                             00110000
+                                                                        00120000
+       DATA DIVISION.                                                   00130000
+       FILE SECTION.                                                    00140000
+       FD  LISTE                                                        00150003
+           RECORDING MODE IS F                                          00160000
+           DATA RECORD ENREG.                                           00170000
+                                                                        00180000
+       01 ENREG.                                                        00190002
+           05 SIT-FAM PIC X.                                            00200004
+             88 CELIBATAIRE VALUE 'C'.                                  00210004
+             88 MARIE       VALUE 'M'.                                  00220004
+             88 DIVORCE     VALUE 'D'.                                  00230004
+             88 VEUF        VALUE 'V'.                                  00240004
+       WORKING-STORAGE SECTION.                                         00250002
+       77 EOF PIC 9 VALUE 0.                                            00260002
+                                                                        00270000
+       PROCEDURE DIVISION.                                              00280002
+       DEBUT.                                                           00290002
+            PERFORM INIT.                                               00300001
+            PERFORM TRAITEMENT.                                         00310001
+            PERFORM FIN.                                                00320005
+            STOP RUN.                                                   00330001
+       INIT.                                                            00340002
+           OPEN INPUT LISTE.                                            00350003
+           READ LISTE AT END                                            00360003
+              MOVE 1 TO EOF                                             00370003
+           END-READ.                                                    00380003
+       TRAITEMENT.                                                      00390002
+           EVALUATE SIT-FAM                                             00400005
+               WHEN CELIBATAIRE = 'C'                                   00410005
+                    DISPLAY 'CELIBATAIRE'                               00420005
+               WHEN MARIE                                               00430005
+                    DISPLAY 'VIE EN COUPLE'                             00440005
+               WHEN DIVORCE                                             00450005
+                    DISPLAY 'VIE SEUL'                                  00460005
+               WHEN VEUF                                                00470005
+                    DISPLAY 'VIE SEUL'                                  00480005
+           END-EVALUATE.                                                00490005
+           READ LISTE AT END                                            00500005
+              MOVE 1 TO EOF                                             00510003
+           END-READ.                                                    00520005
+       FIN.                                                             00530005
+           CLOSE LISTE.                                                 00540005

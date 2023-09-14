@@ -1,0 +1,81 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. I55IPGMT.                                            00020034
+       ENVIRONMENT DIVISION.                                            00030000
+       DATA DIVISION.                                                   00040000
+       WORKING-STORAGE SECTION.                                         00050000
+           COPY I05IMAP.                                                00060004
+           COPY DFHAID.                                                 00070000
+           COPY DFHBMSCA.                                               00080000
+      * COMMAREA                                                        00090041
+       01 WCOMMUN.                                                      00100037
+            05 WENTFC PIC X.                                            00110037
+            05 WENTCL PIC 9(4).                                         00120037
+       77 TEXTE       PIC X(60) VALUE 'GOOD BYE'.                       00130043
+       77 TEXTE-VIDE  PIC X(60) VALUE 'SAISIE VIDE'.                    00140043
+       77 CR          PIC S9(8) BINARY.                                 00150043
+       77 WTOP        PIC 9 VALUE 0.                                    00160043
+                                                                        00170034
+       LINKAGE SECTION.                                                 00180038
+       01 DFHCOMMAREA.                                                  00190034
+          05 LTOP PIC 9.                                                00200034
+                                                                        00210034
+       PROCEDURE DIVISION.                                              00220000
+           IF EIBCALEN NOT = 0                                          00230032
+             PERFORM RECEIVE-MAP                                        00240039
+             PERFORM TRAITEMENT                                         00250041
+             PERFORM XCTL-PROGRAM                                       00260039
+           ELSE                                                         00270033
+              PERFORM SEND-MAP                                          00280039
+              MOVE 1 TO WTOP                                            00290052
+              PERFORM RETURN-TRANSID                                    00300039
+              PERFORM RECEIVE-MAP                                       00310039
+              PERFORM TRAITEMENT                                        00320039
+              PERFORM XCTL-PROGRAM                                      00330045
+           END-IF.                                                      00340045
+       SEND-MAP.                                                        00350032
+           EXEC CICS                                                    00360029
+           SEND MAP('IMAP05') MAPSET('I05IMAP')                         00370029
+                FROM(IMAP05O)                                           00380049
+                ERASE                                                   00390029
+                FREEKB                                                  00400029
+           END-EXEC.                                                    00410039
+       RETURN-TRANSID.                                                  00420032
+           EXEC CICS RETURN TRANSID('I55I') COMMAREA(WTOP) LENGTH(1)    00430049
+           END-EXEC.                                                    00440039
+       RECEIVE-MAP.                                                     00450032
+           EXEC CICS                                                    00460048
+             RECEIVE MAP('IMAP05') MAPSET('I05IMAP')                    00470048
+                 INTO(IMAP05I)                                          00480051
+                 RESP(CR)                                               00490048
+           END-EXEC.                                                    00500048
+           IF CR = DFHRESP(MAPFAIL)                                     00510029
+           AND EIBAID = DFHPF3                                          00520047
+               EXEC CICS SEND TEXT                                      00530026
+                  FROM (TEXTE)                                          00540029
+                  LENGTH(60)                                            00550026
+                  ERASE                                                 00560026
+               END-EXEC                                                 00570026
+               EXEC CICS RETURN END-EXEC                                00580026
+           END-IF.                                                      00590029
+       TRAITEMENT.                                                      00600032
+           IF FNCTL = 0 AND NCLIL > 0                                   00610037
+              MOVE 'FONCTION OBLIGATOIRE' TO MSGO                       00620029
+           END-IF.                                                      00630045
+           IF NCLIL = 0 AND FNCTL > 0                                   00640037
+              MOVE 'NUMERO ARTICLE OBLIGATOIRE' TO MSGO                 00650029
+           END-IF.                                                      00660045
+           IF FNCTL = 0 AND NCLIL = 0                                   00670037
+              MOVE 'SAISIE OBLIGATOIRE FAITES ENTER' TO MSGO            00680029
+           END-IF.                                                      00690045
+           IF FNCTL > 0 AND NCLIL > 0                                   00700037
+              MOVE 'TOUS EST OK' TO MSGO                                00710029
+           END-IF.                                                      00720029
+       XCTL-PROGRAM.                                                    00730033
+           IF NCLIL > 0 AND FNCTL > 0                                   00740037
+              MOVE NCLII TO WENTCL                                      00750035
+              MOVE FNCTI TO WENTFC                                      00760035
+           END-IF.                                                      00770045
+           EXEC CICS                                                    00780030
+                XCTL PROGRAM('IA5IPGMT')                                00790031
+                COMMAREA(WCOMMUN)                                       00800030
+           END-EXEC.                                                    00810042

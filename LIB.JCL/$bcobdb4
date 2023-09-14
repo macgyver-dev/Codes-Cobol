@@ -1,0 +1,30 @@
+//FORI05A JOB (),CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID                      00010005
+//*--------------------------------------------------------------*      00020000
+//*---     PROCEDURE DE COMPILATION DES PROGRAMMES BATCH/DB2  ---*      00030000
+//*--------------------------------------------------------------*      00040000
+//PGMB    EXEC ICOBBTDB,PGMB=EXO4DB,OUTC=I                              00050007
+//LKED.SYSIN DD  *                                                      00060000
+  INCLUDE SYSLIB(DSNELI)                                                00070000
+  NAME EXO4DB(R)                                                        00080007
+//*                                                                     00090000
+//BIND.SYSIN DD  *                                                      00100000
+  DSN SYSTEM(DB2F)                                                      00110000
+  BIND PACKAGE(COLLFORI),MEMBER(EXO4DB) -                               00120007
+  LIBRARY('FORI05.LIB.DBRM') ACTION (REPLACE) VALIDATE (BIND) -         00130005
+  QUALIFIER(FORI05)  ISOLATION(CS)                                      00140005
+//*                                                                     00150000
+//RUN     EXEC PGM=IKJEFT01,TIME=(0,5)                                  00160000
+//STEPLIB DD  DISP=SHR,DSN=DB2F.SDSNEXIT                                00170000
+//        DD  DISP=SHR,DSN=DB2F.RUNLIB.LOAD                             00180000
+//        DD  DISP=SHR,DSN=CEE.SCEERUN                                  00190000
+//SYSOUT   DD SYSOUT=*                                                  00200000
+//SYSPRINT DD SYSOUT=*                                                  00210000
+//*DDIMP DD SYSOUT=*                                                    00220004
+//SYSTSPRT DD SYSOUT=*                                                  00230000
+//FEMPLOYE DD DSN=FORI05.SEQ.EMPLOYE,DISP=SHR                           00240008
+//SYSTSIN  DD  *                                                        00250000
+ DSN SYSTEM(DB2F)                                                       00260000
+ RUN PROGRAM(EXO4DB) PLAN(PLANFORI) -                                   00270007
+ LIBRARY('FORI99.LIB.LOAD')                                             00280004
+ END                                                                    00290000
+//                                                                      00300000

@@ -1,0 +1,29 @@
+//FORI05A JOB (),CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID                      00010005
+//*--------------------------------------------------------------*      00020000
+//*---     PROCEDURE DE COMPILATION DES PROGRAMMES BATCH/DB2  ---*      00030000
+//*--------------------------------------------------------------*      00040000
+//PGMB    EXEC ICOBBTDB,PGMB=EXO3DB,OUTC=I                              00050005
+//LKED.SYSIN DD  *                                                      00060000
+  INCLUDE SYSLIB(DSNELI)                                                00070000
+  NAME EXO3BD(R)                                                        00080005
+//*                                                                     00090000
+//BIND.SYSIN DD  *                                                      00100000
+  DSN SYSTEM(DB2F)                                                      00110000
+  BIND PACKAGE(COLLFORI),MEMBER(EXO3DB) -                               00120005
+  LIBRARY('FORIXX.LIB.DBRM') ACTION (ADD) VALIDATE (BIND) -             00130004
+  QUALIFIER(FORI05)  ISOLATION(CS)                                      00140005
+//*                                                                     00150000
+//RUN     EXEC PGM=IKJEFT01,TIME=(0,5)                                  00160000
+//STEPLIB DD  DISP=SHR,DSN=DB2F.SDSNEXIT                                00170000
+//        DD  DISP=SHR,DSN=DB2F.RUNLIB.LOAD                             00180000
+//        DD  DISP=SHR,DSN=CEE.SCEERUN                                  00190000
+//SYSOUT   DD SYSOUT=*                                                  00200000
+//SYSPRINT DD SYSOUT=*                                                  00210000
+//*DDIMP DD SYSOUT=*                                                    00220004
+//SYSTSPRT DD SYSOUT=*                                                  00230000
+//SYSTSIN  DD  *                                                        00240000
+ DSN SYSTEM(DB2F)                                                       00250000
+ RUN PROGRAM(EXO3DB) PLAN(PLANFORI) -                                   00260005
+ LIBRARY('FORI99.LIB.LOAD')                                             00270004
+ END                                                                    00280000
+//                                                                      00290000

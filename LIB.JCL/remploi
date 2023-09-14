@@ -1,0 +1,6 @@
+//FORI05A  JOB ICCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID      00010010
+//UPDATE   EXEC PGM=IEBGENER                                            00020010
+//SYSUT1   DD   DSN=FORI05.SEQ.EMPLOYE,DISP=SHR                         00030012
+//SYSUT2   DD   DSN=FORI05.SEQ.EMPLOI,DISP=SHR                          00040011
+//SYSIN    DD DUMMY                                                     00050010
+//SYSPRINT DD SYSOUT=*                                                  00060010

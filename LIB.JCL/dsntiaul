@@ -1,0 +1,18 @@
+//FORI05A  JOB ,CLASS=I,MSGCLASS=I,MSGLEVEL=(1,1),                      00010010
+//  NOTIFY=&SYSUID                                                      00020000
+//STEP0  EXEC PGM=IKJEFT01                                              00030000
+//SYSOUT  DD SYSOUT=*                                                   00040000
+//SYSREC00 DD DSN=FORI05.UNLA.TEMPL,DISP=(NEW,CATLG),                   00050010
+// SPACE=(TRK,(1,1))                                                    00060000
+//SYSPUNCH DD DSN=FORI05.PUNC.TEMPL,DISP=(NEW,CATLG),                   00070010
+// SPACE=(TRK,(1,1)),DCB=(RECFM=FB,LRECL=80,BLKSIZE=3120)               00080000
+//SYSPRINT DD SYSOUT=*                                                  00090000
+//SYSTSPRT DD SYSOUT=*                                                  00100000
+//SYSTSIN  DD  *                                                        00110000
+ DSN SYSTEM(DB2F)                                                       00120002
+ RUN PROGRAM(DSNTIAUL) PLAN(DSNTIB11) -                                 00130008
+ LIB ('DB2F.RUNLIB.LOAD')                                               00140007
+ END                                                                    00150000
+//SYSIN  DD *                                                           00160000
+FORI05.TEMPL                                                            00170010
+//                                                                      00180000

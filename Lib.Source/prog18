@@ -1,0 +1,292 @@
+       ID DIVISION.                                                     00010000
+       PROGRAM-ID. PROG18.                                              00020099
+       AUTHOR. JULIEN DUBROMEZ.                                         00030099
+       ENVIRONMENT DIVISION.                                            00040000
+       CONFIGURATION SECTION.                                           00050000
+       SPECIAL-NAMES.                                                   00060000
+           DECIMAL-POINT IS COMMA.                                      00070099
+       INPUT-OUTPUT SECTION.                                            00080000
+       FILE-CONTROL.                                                    00090000
+                                                                        00100099
+           SELECT FEMPL ASSIGN TO FEMPL                                 00110099
+           ORGANIZATION IS INDEXED                                      00120099
+           ACCESS MODE IS RANDOM                                        00130099
+           RECORD KEY IS MAT OF ENR-EMPLOYE                             00140099
+           FILE STATUS WS-STATUS-FEMPL.                                 00150099
+                                                                        00160099
+           SELECT FMVT  ASSIGN TO FMVT                                  00170099
+           FILE STATUS WS-STATUS-FMVT.                                  00180099
+                                                                        00190099
+           SELECT FANO ASSIGN TO FANO                                   00200099
+           FILE STATUS WS-STATUS-FANO.                                  00210099
+                                                                        00220099
+       DATA DIVISION.                                                   00230000
+                                                                        00240099
+       FILE SECTION.                                                    00250000
+       FD FEMPL                                                         00260099
+          DATA RECORD IS ENR-EMPLOYE.                                   00270099
+       01 ENR-EMPLOYE.                                                  00280099
+               05 MAT  PIC X(4).                                        00290099
+               05 FILLER PIC X(1).                                      00300000
+               05 NOM PIC X(6).                                         00310000
+               05 FILLER PIC X(1).                                      00320057
+               05 PRENOM PIC X(6).                                      00330099
+               05 FILLER PIC X(1).                                      00340099
+               05 SALAIRE PIC 9(4)V99.                                  00350099
+               05 FILLER PIC X(1).                                      00360099
+               05 DATE1 PIC 9(8).                                       00370000
+               05 FILLER PIC X(46).                                     00380099
+                                                                        00390063
+       FD FMVT                                                          00400001
+               RECORDING MODE IS F                                      00410001
+               DATA RECORD IS ENR-FMVT.                                 00420001
+       01 ENR-FMVT.                                                     00430001
+               05 MAT  PIC X(4).                                        00440099
+               05 FILLER PIC X(1).                                      00450099
+               05 NOM PIC X(6).                                         00460099
+               05 FILLER PIC X(1).                                      00470099
+               05 PRENOM PIC X(6).                                      00480099
+               05 FILLER PIC X(1).                                      00490099
+               05 SALAIRE PIC 9(4)V99.                                  00500099
+               05 FILLER PIC X(1).                                      00510099
+               05 DATE1 PIC 9(8).                                       00520099
+               05 FILLER PIC X(46).                                     00530099
+                                                                        00540063
+       FD FANO                                                          00550066
+               RECORDING MODE IS F                                      00560063
+               DATA RECORD IS ENR-ANO.                                  00570066
+       01 ENR-ANO.                                                      00580066
+               05 MAT  PIC X(4).                                        00590099
+               05 FILLER PIC X(1).                                      00600099
+               05 NOM PIC X(6).                                         00610099
+               05 FILLER PIC X(1).                                      00620099
+               05 PRENOM PIC  X(6).                                     00630099
+               05 FILLER PIC X(1).                                      00640099
+               05 SALAIRE PIC 9(4)V99.                                  00650099
+               05 FILLER PIC X(1).                                      00660099
+               05 DATE1 PIC 9(8).                                       00670099
+               05 FILLER PIC X(46).                                     00680099
+       WORKING-STORAGE SECTION.                                         00690000
+                                                                        00710099
+       01 WS-ENR-FMVT.                                                  00430001
+               05 WS-MAT  PIC X(4).                                     00440099
+               05 FILLER PIC X(1).                                      00450099
+               05 WS-NOM PIC X(6).                                      00460099
+               05 FILLER PIC X(1).                                      00470099
+               05 WS-PRENOM PIC X(6).                                   00480099
+               05 FILLER PIC X(1).                                      00490099
+               05 WS-SALAIRE PIC 9(4)V99.                               00500099
+               05 FILLER PIC X(1).                                      00510099
+               05 WS-DATE1 PIC 9(8).                                    00520099
+               05 FILLER PIC X(46).                                     00530099
+
+       01 WS-FEMPL.
+          05 WS-STATUS-FEMPL PIC XX VALUE SPACE.
+
+          05 FILLER          PIC X VALUE X"00".
+             88  FEMPL-OUVERT      VALUE X"01" THRU X"FF".
+
+          05 WS-NBENR-LUS-FEMPL  PIC S9(8) COMP VALUE ZERO.
+
+       01 WS-FMVT.
+          05 WS-STATUS-FMVT  PIC XX VALUE SPACE.
+
+          05 FILLER          PIC X VALUE X"00".
+             88 FMVT-OUVERT        VALUE X"01" THRU X"FF".
+
+          05 FILLER          PIC X VALUE X"00".
+             88 FIN-FMVT           VALUE X"01" THRU X"FF".
+
+          05 WS-NBENR-LUS-FMVT  PIC S9(8) COMP VALUE ZERO.
+
+       01 WS-FANO.
+          05 WS-STATUS-FANO  PIC XX VALUE SPACE.
+
+          05 FILLER          PIC X VALUE X"00".
+             88  FANO-OUVERT       VALUE X"01" THRU X"FF".
+
+          05 WS-NBENR-ECR-FANO  PIC S9(8) COMP VALUE ZERO.
+
+       01 WS-RETURN-CODE PIC 9 VALUE 0.                                 00830099
+          88 OK                VALUE 0.
+          88 WARNING           VALUE 4.
+          88 KO                VALUE 8.
+
+       PROCEDURE DIVISION.                                              00840050
+       MD01-INITIALISE SECTION.                                         00850099
+       INIT.                                                            00860099
+           PERFORM MD02-OPEN                                            00870099
+           PERFORM LECTURE-FMVT                                         00880099
+           PERFORM MD03-TRAITEMENT UNTIL FIN-FMVT                       00890099
+           PERFORM MD04-FIN-TRAITEMENT                                  00900099
+           STOP RUN.                                                    00910050
+                                                                        00920050
+       MD02-OPEN SECTION.                                               00930099
+       OPEN-FEMPL.                                                      00940099
+           OPEN I-O FEMPL                                               00950099
+           IF WS-STATUS-FEMPL NOT = ZERO THEN
+              DISPLAY "PROBLEME D'OUVERTURE FEMPL"
+              DISPLAY "CODE RETOUR" WS-STATUS-FEMPL
+              SET WARNING TO TRUE
+              PERFORM MD04-FIN-TRAITEMENT
+           ELSE
+              SET FEMPL-OUVERT TO TRUE
+           END-IF.
+       OPEN-INPUT-FMVT.                                                 00960099
+           OPEN INPUT FMVT                                              00970099
+           IF WS-STATUS-FMVT NOT = ZERO THEN
+              DISPLAY "PROBLEME D'OUVERTURE FMVT"
+              DISPLAY "CODE RETOUR" WS-STATUS-FMVT
+              SET WARNING TO TRUE
+              PERFORM MD04-FIN-TRAITEMENT
+           ELSE
+              SET FMVT-OUVERT TO TRUE
+           END-IF.
+       OPEN-OUTPUT-FANO.                                                00980099
+           OPEN OUTPUT FANO                                             00990099
+           IF WS-STATUS-FANO NOT = "00" THEN
+              DISPLAY "PROBLEM D'OUVERTURE FANO"
+              DISPLAY "CODE RETOUR " WS-STATUS-FANO
+              SET WARNING TO TRUE
+              PERFORM MD04-FIN-TRAITEMENT
+           ELSE
+              SET FANO-OUVERT TO TRUE
+           END-IF.
+       OPEN-EXIT.                                                       01000099
+           EXIT.                                                        01010099
+                                                                        01020099
+       MD03-TRAITEMENT SECTION.                                         01030099
+       VSAM-TRT.                                                        01040099
+           MOVE WS-MAT  TO MAT OF ENR-EMPLOYE                           01050099
+
+           READ FEMPL                                                   01060099
+               INVALID KEY                                              01070099
+                  WRITE ENR-ANO FROM WS-ENR-FMVT AFTER ADVANCING 1      01080099
+                  IF WS-STATUS-FANO = ZERO
+                     ADD 1 TO WS-NBENR-ECR-FANO
+                  ELSE
+                     DISPLAY "PROPBLEME D'ECRITURE DANS ENR-ANO"
+                     DISPLAY "CODE RETOUR : " WS-STATUS-FANO
+                     IF WS-STATUS-FANO (1:1) = "3" OR "4" THEN
+                        SET KO TO TRUE
+                     ELSE
+                        SET WARNING TO TRUE
+                     END-IF
+                     PERFORM MD04-FIN-TRAITEMENT
+                  END-IF
+               NOT INVALID KEY                                          01090099
+                  IF WS-STATUS-FEMPL NOT = ZERO THEN
+                     DISPLAY " PROBLEME DE LECTURE VSAM FEMPL"
+                     DISPLAY " CLE D'ACCES : " MAT OF ENR-EMPLOYE
+                     DISPLAY " CODE RETOUR : " WS-STATUS-FEMPL
+
+                     IF WS-STATUS-FEMPL (1:1) = "3" OR "4" THEN
+                        SET KO TO TRUE
+                     ELSE
+                        SET WARNING TO TRUE
+                     END-IF
+
+                     PERFORM MD04-FIN-TRAITEMENT
+
+                  ELSE
+                     ADD 1 TO WS-NBENR-LUS-FEMPL
+
+                     COMPUTE SALAIRE OF ENR-EMPLOYE =                   01100099
+                     SALAIRE OF ENR-EMPLOYE - WS-SALAIRE                01110099
+
+                     REWRITE ENR-EMPLOYE                                01120099
+                 END-IF
+           END-READ.                                                    01130099
+
+       LECTURE-FMVT.                                                    01140099
+           READ FMVT INTO WS-ENR-FMVT                                   01150099
+              AT END                                                    01160099
+                    SET FIN-FMVT TO TRUE
+              NOT AT END
+              IF WS-STATUS-FMVT NOT = "00" THEN
+                  DISPLAY "PROBLEME DE LECTURE DU FICHIER MAITRE FMVT"
+                  DISPLAY "CODE RETROUR : " WS-STATUS-FMVT
+
+                  IF WS-NBENR-LUS-FMVT >= 1
+                     DISPLAY "DERNIER ENREGISTREMENT LU : "
+                     WS-ENR-FMVT
+                  END-IF
+
+                  IF WS-STATUS-FMVT (1:1) = "3" OR "4" THEN
+                     SET KO TO TRUE
+                  ELSE
+                     SET WARNING TO TRUE
+                  END-IF
+              ELSE
+                  ADD 1 TO WS-NBENR-LUS-FMVT
+              END-IF
+           END-READ.                                                    01170099
+
+       TRAITEMENT-EXIT.                                                 01180099
+           EXIT.                                                        01190099
+
+       MD04-FIN-TRAITEMENT SECTION.                                     01200099
+       CLOSE-FEMPL.
+           IF FEMPL-OUVERT THEN
+              CLOSE FEMPL
+              IF WS-STATUS-FEMPL NOT = ZERO THEN
+                 DISPLAY "PROBLEME DE FERMETURE DU FICHIER VSAM FEMPL"
+                 DISPLAY "CODE RETOUR : " WS-STATUS-FEMPL
+                 SET KO TO TRUE
+              END-IF
+           END-IF.
+       CLOSE-FMVT.
+           IF FMVT-OUVERT THEN
+              CLOSE FMVT
+              IF WS-STATUS-FMVT NOT = ZERO
+                 DISPLAY "PROBLEME DE FERMETURE DU FICHIER MOUVEMENT"
+                 DISPLAY "CODE RETROUR : " WS-STATUS-FMVT
+                 SET KO TO TRUE
+              END-IF
+           END-IF.
+       CLOSE-FANO.
+           IF FANO-OUVERT THEN
+              CLOSE FANO
+              IF WS-STATUS-FANO NOT = ZERO THEN
+                 DISPLAY " PROBLEME DE FERMETURE DU FICHIER ANOMALIE"
+                 DISPLAY " CODE RETOUR " WS-STATUS-FANO
+                 SET KO TO TRUE
+              END-IF
+           END-IF.
+       FIN.                                                             01210037
+           EVALUATE TRUE
+              WHEN OK
+                DISPLAY "********************************************"
+                DISPLAY "*   STATISTIQUE D'ENTREE / SORTIE"
+                DISPLAY "********************************************"
+                DISPLAY "* NOMBRE DE LECTURE FMVT  : " WS-NBENR-LUS-FMVT
+                DISPLAY "* NOMBRE D'ECRITURE DANS FANO : "
+                        WS-NBENR-ECR-FANO
+                DISPLAY "* NOMBRE DE LECTURE DE FEMPL : "
+                        WS-NBENR-LUS-FEMPL
+                DISPLAY "********************************************"
+                DISPLAY "* PROGRAMME PROG18 : FIN NORMAL DU TRAITEMENT"
+                DISPLAY "********************************************"
+             WHEN WARNING
+                IF WS-NBENR-LUS-FMVT  = 0
+                 DISPLAY "********************************************"
+                 DISPLAY "* PROGRAMME PROG18 : PAS DE TRAITEMENT"
+                 DISPLAY "* CODE RETOUR " WS-RETURN-CODE
+                 DISPLAY "********************************************"
+                ELSE
+                 DISPLAY "********************************************"
+                 DISPLAY "* PROGRAMME PROG18 : PAS DE TRAITEMENT"
+                 DISPLAY "* CODE RETOUR " WS-RETURN-CODE
+                 DISPLAY "* FIN ANORMAL DU TRAITEMENT "
+                 DISPLAY "* PROBLEME NOM BLOQUANT "
+                 DISPLAY "********************************************"
+                END-IF
+             WHEN OTHER
+                DISPLAY "********************************************"
+                DISPLAY "* PROGRAMME PROG18 : ABEND"
+                DISPLAY "* CODE RETOUR " WS-RETURN-CODE
+                DISPLAY "********************************************"
+           END-EVALUATE
+           MOVE WS-RETURN-CODE TO RETURN-CODE.
+       FIN-EXIT.                                                        01230099
+           EXIT.                                                        01240099

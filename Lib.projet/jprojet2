@@ -1,0 +1,30 @@
+//FORI05A JOB (),CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID                      00010005
+//*--------------------------------------------------------------*      00020000
+//*---     PROCEDURE DE COMPILATION DES PROGRAMMES BATCH/DB2  ---*      00030000
+//*--------------------------------------------------------------*      00040000
+//PGMB    EXEC ICOBBTDB,PGMB=PROJET2,OUTC=I                             00050012
+//LKED.SYSIN DD  *                                                      00060000
+  INCLUDE SYSLIB(DSNELI)                                                00070000
+  NAME PROJET2(R)                                                       00080012
+//*                                                                     00090000
+//BIND.SYSIN DD  *                                                      00100000
+  DSN SYSTEM(DB2F)                                                      00110000
+  BIND PACKAGE(COLLFORI),MEMBER(PROJET2) -                              00120012
+  LIBRARY('FORI05.LIB.DBRM') ACTION (REPLACE) VALIDATE (BIND) -         00130014
+  QUALIFIER(FORI05)  ISOLATION(CS)                                      00140005
+//*                                                                     00150000
+//RUN     EXEC PGM=IKJEFT01,TIME=(0,5)                                  00160000
+//STEPLIB DD  DISP=SHR,DSN=DB2F.SDSNEXIT                                00170000
+//        DD  DISP=SHR,DSN=DB2F.RUNLIB.LOAD                             00180000
+//        DD  DISP=SHR,DSN=CEE.SCEERUN                                  00190000
+//SYSPRINT DD SYSOUT=*                                                  00210000
+//SYSTSPRT DD SYSOUT=*                                                  00220000
+//PFORI    DD SYSOUT=*                                                  00230015
+//SYSOUT   DD SYSOUT=*                                                  00231016
+//FMVTS    DD DSN=FORI05.SEQ.FMVTS,DISP=SHR                             00240014
+//SYSTSIN  DD  *                                                        00250000
+ DSN SYSTEM(DB2F)                                                       00260000
+ RUN PROGRAM(PROJET2) PLAN(PLANFORI) -                                  00270012
+ LIBRARY('FORI99.LIB.LOAD')                                             00280004
+ END                                                                    00290000
+//                                                                      00300000

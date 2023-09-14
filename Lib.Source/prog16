@@ -1,0 +1,62 @@
+       ID DIVISION.                                                     00010000
+       PROGRAM-ID. PROG16.                                              00020011
+      ***********************************************************       00030000
+       ENVIRONMENT DIVISION.                                            00040000
+       CONFIGURATION SECTION.                                           00050000
+       SPECIAL-NAMES.                                                   00060000
+           DECIMAL-POINT  IS COMMA                                      00070004
+           CURRENCY  SIGN IS 'F'.                                       00080008
+       DATA DIVISION.                                                   00090001
+       WORKING-STORAGE SECTION.                                         00100001
+       01  ZONE-A      PIC X(4) VALUE 'TOTO'.                           00110001
+       01  ZONE-B      PIC X(5) VALUE SPACE.                            00120001
+       01  ZONE-C      PIC 9(6) VALUE ZERO.                             00130001
+       01  ZONE-D      PIC 9(6)V99 VALUE ZERO.                          00140001
+       01  ZONE-DD     PIC 9(6)V99.                                     00150001
+       01  ZONE-E      PIC  9(6)V999 VALUE 1.                           00160010
+       01  ZONE-F      PIC ZBZZZBZZ.                                    00170001
+       01  ZONE-G      PIC 99999999999.                                 00180001
+       01  ZONE-H      PIC *.***,**+.                                   00190001
+       01  ZONE-I      PIC ZZ9,99.                                      00200001
+       01  ZONE-J      PIC ZZZBZZ,ZZ.                                   00210001
+       01  ZONE-K      PIC Z,ZZ.                                        00220001
+       01  ZONE-L      PIC +Z,ZZ.                                       00230002
+       01  ZONE-M      PIC F********.                                   00240008
+       01  ZONE-N      PIC ********CR.                                  00250001
+       01  ZONE-O      PIC ********DB.                                  00260001
+       PROCEDURE DIVISION.                                              00270001
+       DEBUT.                                                           00280003
+      * 1                                                               00290003
+           MOVE ZONE-A TO ZONE-B.                                       00300003
+           DISPLAY 'EX1 ' ZONE-A ' ' ZONE-B.                            00310003
+      * 2                                                               00320003
+           MOVE 'INFOSPHERE' TO ZONE-A.                                 00330003
+           DISPLAY 'EX2 ' ZONE-A                                        00340004
+      * 3                                                               00350003
+           MOVE ZONE-A TO ZONE-B.                                       00360003
+           DISPLAY 'EX3 ' ZONE-B.                                       00370003
+      * 4                                                               00380003
+           MOVE ZONE-B TO ZONE-A.                                       00390003
+           DISPLAY 'EX4 ' ZONE-A ' ' ZONE-B.                            00400004
+      * 5                                                               00410003
+           MOVE 1234 TO ZONE-C.                                         00420003
+           DISPLAY 'EX5 ' ZONE-C.                                       00430003
+      * 6                                                               00440003
+           MOVE 1234 TO ZONE-D ZONE-DD.                                 00450003
+           DISPLAY 'EX6 ' ZONE-D ' ' ZONE-DD  'ZONE-E : ' ZONE-E.       00460003
+      * 7                                                               00470003
+           MOVE 105478560000 TO ZONE-F ZONE-G ZONE-H ZONE-I.            00480003
+           DISPLAY 'EX7 ' ZONE-F ' ' ZONE-G ' ' ZONE-H ' ' ZONE-I .     00490003
+      * 8                                                               00500003
+           MOVE ZERO TO ZONE-J ZONE-K.                                  00510003
+           DISPLAY 'EX8 ' ZONE-J ' ' ZONE-K.                            00520003
+      * 9                                                               00530003
+           MOVE -146000 TO ZONE-L ZONE-M.                               00540003
+           DISPLAY 'EX9 ' ZONE-L ' ' ZONE-M.                            00550003
+      * 10                                                              00560003
+           MOVE -889050 TO ZONE-N ZONE-O.                               00570003
+           DISPLAY 'EX10 ' ZONE-N ' ' ZONE-O.                           00580003
+      * 11                                                              00590006
+           MOVE +144750 TO ZONE-N ZONE-O.                               00600006
+           DISPLAY 'EX11 ' ZONE-N ' ' ZONE-O.                           00610006
+           GOBACK.                                                      00620003

@@ -1,0 +1,230 @@
+       IDENTIFICATION DIVISION.                                         00010007
+       PROGRAM-ID. EXO5DBIS.                                            00020053
+       AUTHOR. JULIEN DUBROMEZ.                                         00030035
+       ENVIRONMENT DIVISION.                                            00040007
+       CONFIGURATION SECTION.                                           00050007
+       SPECIAL-NAMES.                                                   00060007
+           DECIMAL-POINT IS COMMA.                                      00070012
+       INPUT-OUTPUT SECTION.                                            00080007
+       FILE-CONTROL.                                                    00090008
+           SELECT FEMPLOYE ASSIGN TO FEMPLOYE                           00100050
+           FILE STATUS  WS-STATUS-FEMPLOYE.                             00110032
+       DATA DIVISION.                                                   00120012
+       FILE SECTION.                                                    00130012
+       FD  FEMPLOYE                                                     00140031
+           RECORDING MODE IS F                                          00150005
+           DATA RECORD ENR-FEMPLOYE.                                    00160032
+       01 ENR-FEMPLOYE.                                                 00170032
+           05 F-FEMPLOYE-KEY PIC 9(3).                                  00180036
+           05 FILLER         PIC X.                                     00190036
+           05 F-SALAIRE      PIC 9(5)V9(2).                             00200051
+           05 FILLER         PIC X(69).                                 00210049
+       WORKING-STORAGE SECTION.                                         00220011
+       77 WS-IND PIC S9(4) COMP.                                        00230043
+       01 WS-ENR-FEMPLOYE.                                              00240032
+           05 WS-FEMPLOYE-KEY PIC 9(3).                                 00250047
+           05 FILLER         PIC X.                                     00260049
+           05 WS-SALAIRE      PIC 9(5)V9(2).                            00270051
+           05 FILLER         PIC X(69).                                 00280049
+                                                                        00290049
+       01 WS-FEMPLOYE.                                                  00300033
+          05 WS-STATUS-FEMPLOYE PIC XX VALUE SPACE.                     00310032
+                                                                        00320027
+          05 FILLER          PIC X     VALUE X"00".                     00330035
+             88 FEMPLOYE-OUVERT VALUE X"01" THRU X"FF".                 00340033
+             88 FEMPLOYE-FERMER        VALUE X"00".                     00350033
+                                                                        00360027
+          05 FILLER          PIC X     VALUE X"00".                     00370035
+             88 FIN-FEMPLOYE           VALUE X"01" THRU X"FF".          00380033
+          05 WS-NBENR-LUS-FEMPLOYE PIC S9(8) COMP VALUE ZERO.           00390033
+                                                                        00400027
+       01 WS-RETURN-CODE  PIC 9    VALUE 0.                             00410027
+           88 OK       VALUE 0.                                         00420027
+           88 WARNING  VALUE 4.                                         00430027
+           88 KO       VALUE 8.                                         00440027
+                                                                        00450024
+       01 MSG-ERR.                                                      00460033
+          05 ERR-LEN  PIC S9(4) COMP VALUE +720.                        00470033
+          05 ERR-TXT  PIC X(72) OCCURS 10 TIMES  INDEXED BY IX-ERR.     00480044
+       77 LEN-ERR-TXT  PIC S9(9) COMP VALUE +72.                        00490033
+                                                                        00500033
+           EXEC SQL                                                     00510033
+              INCLUDE SQLCA                                             00520033
+           END-EXEC.                                                    00530033
+                                                                        00540033
+           EXEC SQL                                                     00550033
+              INCLUDE TEMPL                                             00560033
+           END-EXEC.                                                    00570033
+                                                                        00580035
+           EXEC SQL                                                     00590033
+              DECLARE C1 CURSOR                                         00600033
+              FOR                                                       00610033
+              SELECT NEMP,NOM,PRENOM,SALAIRE,DEPT                       00620033
+              FROM TEMPL                                                00630033
+              FOR                                                       00640033
+              UPDATE OF SALAIRE                                         00650033
+           END-EXEC.                                                    00660033
+                                                                        00670033
+       PROCEDURE DIVISION.                                              00680011
+       S10-INITIALISE SECTION.                                          00690019
+      * OPEN INPUT MAITRE FILE AND OUTPUT SQL                           00700035
+           PERFORM INIT-FEMPLOYE                                        00710035
+           PERFORM INIT-SQL-CUSOR-C1                                    00720035
+      * PREMIER LECTURE DE FEMPLOYE ET SQL                              00730034
+           PERFORM LECTURE-FEMPLOYE-TRT                                 00740035
+           PERFORM LECTURE-SQL-TRT                                      00750035
+           PERFORM ERREUR-SQL                                           00760035
+           IF FIN-FEMPLOYE                                              00770035
+              PERFORM FIN                                               00780035
+           END-IF                                                       00790035
+                                                                        00800035
+      *  LECTURE DE CHAQUE ENREGISTREMENT DE FEMPLOYE ET SQL            00810034
+           PERFORM TRAITEMENT UNTIL FIN-FEMPLOYE                        00820035
+           PERFORM FIN.                                                 00830035
+      *---------------------------------                                00840019
+      *  INITIALISATION                                                 00850019
+      *---------------------------------                                00860019
+       INIT-FEMPLOYE.                                                   00870035
+      *===============                                                  00880014
+           OPEN INPUT FEMPLOYE                                          00890031
+           IF WS-STATUS-FEMPLOYE NOT = "00"                             00900032
+             DISPLAY " PROGRAMME EXO5DB, VERSION 1.0"                   00910031
+             DISPLAY " ERREUR D'OUVERTURE FEMPLOYE"                     00920031
+             DISPLAY " CODE RETOUR " WS-STATUS-FEMPLOYE                 00930032
+             DISPLAY " PAS DE TRAITEMENT"                               00940020
+             SET WARNING TO TRUE                                        00950024
+             GOBACK                                                     00960020
+           ELSE                                                         00970024
+             SET FEMPLOYE-OUVERT TO TRUE                                00980033
+           END-IF.                                                      00990030
+       INIT-SQL-CUSOR-C1.                                               01000044
+      *===============                                                  01010033
+            EXEC SQL                                                    01020033
+               OPEN C1                                                  01030033
+            END-EXEC.                                                   01040033
+      *---------------------------------                                01050019
+      *  TRAITEMENT PRINCIPAL                                           01060019
+      *---------------------------------                                01070019
+       TRAITEMENT.                                                      01080035
+      *============                                                     01090014
+           EVALUATE TRUE                                                01100044
+              WHEN WS-FEMPLOYE-KEY = NEMP                               01110045
+                 MOVE WS-SALAIRE TO SALAIRE                             01120044
+                 PERFORM UPDATE-SQL-TRT                                 01130044
+                 PERFORM ERREUR-SQL                                     01140044
+                 PERFORM SQL-DISPLAY-TRT                                01150044
+                 PERFORM ERREUR-SQL                                     01160044
+                 PERFORM LECTURE-FEMPLOYE-TRT                           01170044
+                 PERFORM LECTURE-SQL-TRT                                01180044
+                 PERFORM ERREUR-SQL                                     01190044
+              WHEN WS-FEMPLOYE-KEY > NEMP                               01200045
+                 PERFORM LECTURE-FEMPLOYE-TRT                           01210044
+              WHEN WS-FEMPLOYE-KEY < NEMP                               01220045
+                 PERFORM LECTURE-SQL-TRT                                01230044
+                 PERFORM ERREUR-SQL                                     01240044
+           END-EVALUATE.                                                01250044
+      *---------------------------------                                01260035
+      *  TRAITEMENT                                                     01270035
+      *---------------------------------                                01280035
+                                                                        01290035
+       UPDATE-SQL-TRT.                                                  01300035
+      *============                                                     01310035
+      * METS @ JOUR LE SALAIRE DE TEMPL @ PARTIR                        01320035
+      * DU FICHIER INTERNE MAITRE FEMPLOYE                              01330035
+           EXEC SQL                                                     01340035
+              UPDATE TEMPL                                              01350043
+              SET SALAIRE = :SALAIRE                                    01360035
+              WHERE CURRENT OF C1                                       01370035
+           END-EXEC.                                                    01380035
+       SQL-DISPLAY-TRT.                                                 01390035
+      *============                                                     01400035
+      * AFFICHE LA DERNIER LIGNER SQL QUAND SQLCODE EST                 01410035
+      * DIFFERENT DE 100                                                01420035
+           IF SQLCODE NOT = 100                                         01430035
+              DISPLAY NEMP '  ' NOM ' ' PRENOM  '  ' SALAIRE ' ' DEPT   01440035
+           END-IF.                                                      01450035
+       LECTURE-FEMPLOYE-TRT.                                            01460035
+      *============                                                     01470034
+      * LIT LE FICHIER INTERNE MAITRE FEMPLOYE                          01480035
+      * ET GERE LES ERREUR D'OUVERTURE.                                 01490035
+           READ FEMPLOYE INTO WS-ENR-FEMPLOYE                           01500032
+           AT END                                                       01510027
+              SET FIN-FEMPLOYE TO TRUE                                  01520033
+           NOT AT END                                                   01530027
+               IF WS-STATUS-FEMPLOYE NOT = ZERO                         01540032
+                 DISPLAY "PROBLEME DE LECTURE FEMPLOYE"                 01550031
+                 DISPLAY "CODE RETOUR " WS-STATUS-FEMPLOYE              01560032
+                                                                        01570029
+                 IF WS-NBENR-LUS-FEMPLOYE >= 1                          01580033
+                    DISPLAY "DERNIER ENR-FEMPLOYE LU : " WS-ENR-FEMPLOYE01590032
+                 END-IF                                                 01600029
+                                                                        01610029
+                 IF WS-STATUS-FEMPLOYE (1:1) = "3" OR "4"               01620032
+                    SET KO TO TRUE                                      01630029
+                 ELSE                                                   01640029
+                    SET WARNING TO TRUE                                 01650029
+                 END-IF                                                 01660029
+               ELSE                                                     01670029
+                  ADD 1 TO WS-NBENR-LUS-FEMPLOYE                        01680033
+               END-IF                                                   01690027
+           END-READ.                                                    01700011
+       LECTURE-SQL-TRT.                                                 01710035
+      *============                                                     01720033
+      * AFFICHER LIGNE PAR LIGNE LA REQUETTE SELECT DU CUSOR C1         01730035
+           EXEC SQL                                                     01740035
+              FETCH C1                                                  01750035
+              INTO :NEMP,:NOM,:PRENOM,:SALAIRE:WS-IND,:DEPT             01760035
+           END-EXEC                                                     01770035
+      * TEST LA VALEUR SQL EST NULL                                     01780035
+      * ET METS 0 DANS LE SALAIRE                                       01790035
+           IF WS-IND = -1                                               01800035
+              MOVE 0 TO WS-SALAIRE                                      01810035
+           END-IF.                                                      01820048
+                                                                        01830035
+       ERREUR-SQL.                                                      01840035
+      *============                                                     01850034
+      * AFFICHE UNE ERREUR SQL SI SQLCODE EST A -1                      01860035
+      * ET N'EST PAS EGAL @ -305                                        01870035
+           IF SQLCODE < ZERO AND SQLCODE NOT = -305                     01880035
+              CALL 'DSNTIAR' USING SQLCA MSG-ERR LEN-ERR-TXT            01890035
+              DISPLAY MSG-ERR                                           01900035
+              GOBACK                                                    01910035
+           END-IF.                                                      01920035
+      *---------------------------------                                01930034
+      * FIN DE TRAITEMENT                                               01940020
+      *---------------------------------                                01950015
+       FIN.                                                             01960035
+      *============                                                     01970034
+      * TEST SI LE NOM INTERNE FEMPLOYE EST OUVERT POUR                 01980035
+      * LE FERMER                                                       01990035
+           IF FEMPLOYE-OUVERT                                           02000033
+              CLOSE FEMPLOYE                                            02010031
+              IF WS-STATUS-FEMPLOYE NOT = "00"                          02020032
+                 DISPLAY "PROBLEME DE FERMETURE FEMPLOYE"               02030031
+                 DISPLAY "CODE RETOUR " WS-STATUS-FEMPLOYE              02040032
+                 SET KO TO TRUE                                         02050024
+              END-IF                                                    02060024
+           END-IF                                                       02070024
+                                                                        02080035
+      * TEST SI LE SQLCODE EST A 100 POUR FERMER LE CURSEUR C1          02090035
+           IF SQLCODE = 100                                             02100033
+              EXEC SQL                                                  02110033
+                 CLOSE C1                                               02120033
+              END-EXEC                                                  02130033
+           END-IF                                                       02140033
+                                                                        02150035
+      * AFFICHE LE RESULTAT DU TRAITEMENT                               02160035
+           EVALUATE TRUE                                                02170024
+              WHEN OK                                                   02180024
+                DISPLAY "PROGRAMME EXO5DB : FIN NORMAL DU PROGRAMME"    02190031
+                DISPLAY "SQLCODE " SQLCODE                              02200033
+              WHEN WARNING                                              02210024
+                DISPLAY "PROGRAMME EXO5DB : PAS DE TRAITEMENT"          02220031
+              WHEN OTHER                                                02230026
+                DISPLAY "PROGRAMME EXO5DB : ABEND"                      02240031
+                SET KO TO TRUE                                          02250026
+           END-EVALUATE                                                 02260026
+                                                                        02270035
+           MOVE WS-RETURN-CODE TO RETURN-CODE                           02280026
+                                                                        02290035
+           STOP RUN.                                                    02300026

@@ -1,0 +1,7 @@
+//FORI05E  JOB ICCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID      00010002
+//STEP1 EXEC PGM=PROG6,TIME=(0,1)                                       00020020
+//STEPLIB   DD DSN=FORI05.LIB.LOAD,DISP=SHR                             00030020
+//FEMPLOYE  DD DSN=FORI05.SEQ.EMPLOYE,DISP=SHR                          00040020
+//FOUTPUT   DD DSN=FORI05.SEQ.EMPL,DISP=SHR                             00050020
+//SYSPRINT  DD SYSOUT=*                                                 00060002
+//SYSOUT    DD SYSOUT=*,OUTLIM=100                                      00070020

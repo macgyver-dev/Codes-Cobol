@@ -1,0 +1,143 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. PROG10.                                              00020099
+       AUTHOR. JULIEN DUBROMEZ.                                         00030000
+       ENVIRONMENT DIVISION.                                            00040000
+       CONFIGURATION SECTION.                                           00050000
+       SPECIAL-NAMES.                                                   00060000
+           DECIMAL-POINT IS COMMA.                                      00070000
+       INPUT-OUTPUT SECTION.                                            00080000
+       FILE-CONTROL.                                                    00090000
+           SELECT EMPLOYE ASSIGN TO DDIN1.                              00100099
+           SELECT EMPLOI ASSIGN TO DDIN2.                               00110099
+           SELECT EMPL ASSIGN TO DDOUT1.                                00120099
+           SELECT FANO ASSIGN TO DDOUT2.                                00130099
+       DATA DIVISION.                                                   00140000
+       FILE SECTION.                                                    00150008
+       FD EMPLOYE                                                       00160052
+           RECORDING MODE IS F                                          00170052
+           DATA RECORD ENREG-SRC.                                       00180099
+       01  ENREG-SRC.                                                   00190099
+           05 MATX.                                                     00200099
+              10 MAT       PIC 9(4).                                    00210099
+           05 FILLER       PIC X(1).                                    00220099
+           05 NOM          PIC X(6).                                    00230099
+           05 FILLER       PIC X(4).                                    00240099
+           05 SURNAME      PIC X(6).                                    00250099
+           05 FILLER       PIC X(2).                                    00260099
+           05 DATE-FR      PIC X(10).                                   00270099
+           05 FILLER       PIC X(2).                                    00280099
+           05 SALAIRE      PIC 9(5)V99.                                 00290099
+           05 FILLER       PIC X(38).                                   00300099
+       FD EMPLOI                                                        00310099
+           RECORDING MODE IS F                                          00320099
+           DATA RECORD ENREG-MVT.                                       00330099
+       01  ENREG-MVT.                                                   00340099
+           05 MATX.                                                     00350099
+              10 MAT PIC 9(4).                                          00360099
+           05 FILLER       PIC X(1).                                    00370099
+           05 SALAIRE      PIC 9(5)V99.                                 00380099
+           05 FILLER       PIC X(68).                                   00390099
+       FD EMPL                                                          00400099
+           RECORDING MODE IS F                                          00410099
+           DATA RECORD ENREG-PERMANENT.                                 00420099
+       01  ENREG-PERMANENT.                                             00430099
+           05 MATX.                                                     00440099
+              10 MAT PIC 9(4).                                          00450099
+           05 FILLER       PIC X(1).                                    00460099
+           05 NOM          PIC X(6).                                    00470099
+           05 FILLER       PIC X(4).                                    00480099
+           05 SURNAME      PIC X(6).                                    00490099
+           05 FILLER       PIC X(2).                                    00500099
+           05 DATE-FR      PIC X(10).                                   00510099
+           05 FILLER       PIC X(2).                                    00520099
+           05 SALAIRE      PIC 9(5)V99.                                 00530099
+           05 FILLER       PIC X(38).                                   00540099
+                                                                        00550099
+       FD FANO                                                          00560099
+           RECORDING MODE IS F                                          00570099
+           DATA RECORD IS ENR-ANO.                                      00580099
+       01 ENR-ANO.                                                      00590099
+           05 MAT          PIC X(4).                                    00600099
+           05 FILLER       PIC X(1).                                    00610099
+           05 SALAIRE      PIC 9(5)V99.                                 00620099
+           05 FILLER       PIC X(68).                                   00630099
+       WORKING-STORAGE SECTION.                                         00640000
+       77 EOF PIC 9.                                                    00650099
+      *---------------------------------                                00660026
+      *  TRAITEMENT PRINCIPAL                                           00670026
+      *---------------------------------                                00680026
+       PROCEDURE DIVISION.                                              00690057
+      *=======================                                          00700028
+           PERFORM INIT.                                                00710099
+           PERFORM TRAITEMENT UNTIL                                     00720099
+           MATX OF ENREG-SRC = HIGH-VALUE                               00730099
+           AND  MATX OF ENREG-MVT = HIGH-VALUE                          00740099
+           PERFORM FIN.                                                 00750099
+           STOP RUN.                                                    00760099
+      *---------------------------------                                00770099
+      *  INITIALISATION                                                 00780099
+      *---------------------------------                                00790099
+       INIT.                                                            00800099
+      *=======================                                          00810099
+           OPEN INPUT EMPLOYE EMPLOI OUTPUT EMPL FANO.                  00820099
+           PERFORM LECTURE-SRC.                                         00830099
+           PERFORM LECTURE-MVT.                                         00840099
+      *=======================                                          00850053
+      *TRAITEMENT.                                                      00860053
+      *=======================                                          00870001
+       LECTURE-MVT.                                                     00880099
+           READ EMPLOI AT END                                           00890099
+             MOVE HIGH-VALUE TO MATX OF ENREG-MVT                       00900099
+           END-READ.                                                    00910099
+                                                                        00920099
+       LECTURE-SRC.                                                     00930099
+           READ EMPLOYE AT END                                          00940099
+             MOVE HIGH-VALUE TO MATX OF ENREG-SRC                       00950099
+           END-READ.                                                    00960099
+                                                                        00970099
+       EGALITE.                                                         00980099
+           COMPUTE SALAIRE OF ENREG-PERMANENT = SALAIRE OF ENREG-SRC -  00990099
+           SALAIRE OF ENREG-MVT                                         01000099
+           MOVE MAT OF ENREG-SRC TO MAT OF ENREG-PERMANENT              01010099
+           MOVE NOM OF ENREG-SRC TO NOM OF ENREG-PERMANENT              01020099
+           MOVE SURNAME OF ENREG-SRC TO SURNAME OF ENREG-PERMANENT      01030099
+           MOVE DATE-FR OF ENREG-SRC TO DATE-FR OF ENREG-PERMANENT      01040099
+           WRITE ENREG-PERMANENT                                        01050099
+           PERFORM LECTURE-SRC                                          01060099
+           PERFORM LECTURE-MVT.                                         01070099
+                                                                        01080099
+       INFERIEUR.                                                       01090099
+           MOVE MAT OF ENREG-SRC TO MAT OF ENREG-PERMANENT              01100099
+           MOVE NOM OF ENREG-SRC TO NOM OF ENREG-PERMANENT              01110099
+           MOVE SURNAME OF ENREG-SRC TO SURNAME OF ENREG-PERMANENT      01120099
+           MOVE DATE-FR OF ENREG-SRC TO DATE-FR OF ENREG-PERMANENT      01130099
+           WRITE ENREG-PERMANENT                                        01140099
+           PERFORM LECTURE-SRC.                                         01150099
+                                                                        01160099
+       SUPERIEUR.                                                       01170099
+           MOVE MAT OF ENREG-MVT TO MAT OF ENR-ANO                      01180099
+           MOVE SALAIRE OF ENREG-MVT TO SALAIRE OF ENR-ANO              01190099
+           WRITE ENR-ANO                                                01200099
+           PERFORM LECTURE-MVT.                                         01210099
+                                                                        01220099
+       TRAITEMENT.                                                      01230082
+           EVALUATE TRUE                                                01240099
+           WHEN MAT OF ENREG-SRC = MAT OF ENREG-MVT                     01250099
+                PERFORM EGALITE                                         01260099
+           WHEN MAT OF ENREG-SRC < MAT OF ENREG-MVT                     01270099
+                PERFORM INFERIEUR                                       01280099
+           WHEN MAT OF ENREG-SRC > MAT OF ENREG-MVT                     01290099
+                PERFORM SUPERIEUR                                       01300099
+           WHEN OTHER                                                   01310099
+              CLOSE EMPLOYE EMPLOI EMPL                                 01320099
+              EXIT                                                      01330099
+           END-EVALUATE.                                                01340099
+                                                                        01350099
+      *---------------------------------                                01360028
+       FIN.                                                             01370028
+      *=======================                                          01380009
+           CLOSE EMPLOYE EMPLOI EMPL.                                   01390099
+                                                                        01400099
+      *=======================                                          01410024
+      * FIN DE TRAITEMENT                                               01420022
+      *---------------------------------                                01430022

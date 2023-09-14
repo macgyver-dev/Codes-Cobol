@@ -1,0 +1,20 @@
+//FORI05A JOB ACCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID       00010011
+//*=======================================================              00020004
+//*        FILE:  CAT                                                   00030004
+//*        USAGE: CONCATENE DEUX FICHIER                                00040004
+//*        DESCRIPTION:  FUSIONNE DEUX FICHIER                          00050004
+//*        COPYRIGHT (C) LIBRE DE DROIT                                 00060004
+//*        BUGS:  ---                                                   00070004
+//*        NOTES:    CONTACT J.DUBROMEZ.IT@GMAIL.COM FOR BUG.           00080020
+//*        AUTHOR:   DUBROMEZ JULIEN                                    00090004
+//*        COMPANY:  FEELL EUROPE.                                      00100004
+//*        VERSION:  1.0                                                00110004
+//*        CREATED:  01/10/2018 CEST                                    00120004
+//*        REVISION:  ---                                               00130004
+//*=====================================================                00140004
+//READ     EXEC PGM=IEBGENER                                            00150020
+//SYSUT1   DD   DSN=FORI05.SEQ.EMPLOYE,DISP=SHR                         00160020
+//SYSUT2   DD   DSN=FORI05.SEQ.CAT,DISP=(,DELETE,CATLG),                00170019
+//         SPACE=(TRK,(1,1)),RECFM=FB,LRECL=80,BLKSIZE=800              00180018
+//SYSIN    DD DUMMY                                                     00190013
+//SYSPRINT DD SYSOUT=*                                                  00200013

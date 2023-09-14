@@ -1,0 +1,5 @@
+//FORI05E  JOB ('ICCTFORI'),'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID  00010001
+//RUNBIN   EXEC PGM=PROG11,TIME=(,1)                                    00020002
+//STEPLIB  DD DSN=FORI05.LIB.LOAD,DISP=SHR                              00030002
+//SYSPRINT DD SYSOUT=*                                                  00050002
+//SYSOUT   DD SYSOUT=*,OUTLIM=100                                       00060002

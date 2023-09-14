@@ -1,0 +1,382 @@
+       ID DIVISION.                                                     00010000
+       PROGRAM-ID. PROJET1.                                             00020099
+       AUTHOR. JULIEN DUBROMEZ.                                         00030099
+       ENVIRONMENT DIVISION.                                            00040000
+       CONFIGURATION SECTION.                                           00050000
+       SPECIAL-NAMES.                                                   00060000
+           DECIMAL-POINT IS COMMA.                                      00070099
+       INPUT-OUTPUT SECTION.                                            00080000
+       FILE-CONTROL.                                                    00090000
+           SELECT FMVT-E ASSIGN TO FMVTE                                00110099
+           ORGANIZATION SEQUENTIAL
+           FILE STATUS WS-STATUS-FMVT-E.                                00150099
+                                                                        00160099
+           SELECT FMVT-S ASSIGN TO FMVTS                                00170099
+           ORGANIZATION SEQUENTIAL
+           FILE STATUS WS-STATUS-FMVT-S.                                00180099
+                                                                        00190099
+           SELECT FANO ASSIGN TO FANO                                   00200099
+           FILE STATUS WS-STATUS-FANO.                                  00210099
+                                                                        00220099
+       DATA DIVISION.                                                   00230000
+                                                                        00240099
+       FILE SECTION.                                                    00250000
+       FD FMVT-E                                                        00260099
+           RECORDING MODE IS F                                          00410001
+           DATA RECORD IS ENR-FMVT-E.                                   00270099
+       01 ENR-FMVT-E.                                                   00280099
+               05 E-PRT-MVT  PIC X(4).                                  00290099
+               05 FILLER     PIC X(1).                                  00300000
+               05 E-TYPE-MVT PIC X(1).                                  00310000
+               05 FILLER     PIC X(1).                                  00300000
+               05 E-PRIX-MVT PIC 9(7).                                  00330099
+               05 FILLER PIC X(66).                                     00380099
+                                                                        00390063
+       FD FMVT-S                                                        00400001
+               RECORDING MODE IS F                                      00410001
+               DATA RECORD IS ENR-FMVT-S.                               00420001
+       01 ENR-FMVT-S.                                                   00430001
+               05 E-PRT-MVT PIC X(4).                                   00290099
+               05 FILLER PIC X(1).                                      00300000
+               05 E-TYPE-MVT PIC X(1).                                  00310000
+               05 FILLER PIC X(1).                                      00300000
+               05 E-PRIX-MVT PIC 9(7).                                  00330099
+               05 FILLER PIC X(66).                                     00380099
+                                                                        00540063
+       FD FANO                                                          00550066
+               RECORDING MODE IS F                                      00560063
+               DATA RECORD IS ENR-ANO.                                  00570066
+       01 ENR-ANO.                                                      00580066
+               05 E-PRT-MVT PIC X(4).                                   00290099
+               05 FILLER PIC X(1).                                      00300000
+               05 E-TYPE-MVT PIC X(1).                                  00310000
+               05 FILLER PIC X(1).                                      00300000
+               05 E-PRIX-MVT PIC X(7).                                  00330099
+               05 FILLER PIC X(66).                                     00380099
+
+       WORKING-STORAGE SECTION.                                         00690000
+      * PICTURE D'EDITION                                               00710099
+       77 PRIX        PIC ZZBZZ9,99.
+       77 E-CODE-PRD  PIC ZZZ9.
+
+      * PERMET DE GARDER EN MEMOIRE LES DATA DE LA
+      * DATA RECORDE (ENREGISTREMENT NON PERSISTANT
+      * DANS LA DATA RECORDE)
+       01 WS-ENR-FMVT-E.                                                00430001
+           05 WS-E-PRT-MVT  PIC X(4).                                   00440099
+           05 FILLER        PIC X(1).                                   00300000
+           05 WS-E-TYPE-MVT PIC X(1).                                   00460099
+           05 FILLER        PIC X(1).                                   00300000
+           05 WS-E-PRIX-MVT PIC 9(7).                                   00480099
+           05 FILLER PIC X(66).                                         00490099
+
+      * GESTION DES ETATS DU FICHIER MAITRE SEQUENTIEL FMVT-E
+       01 WS-FMVT-E.
+          05 WS-STATUS-FMVT-E PIC XX VALUE SPACE.
+
+          05 FILLER          PIC X VALUE X"00".
+             88  FMVT-E-OUVERT     VALUE X"01" THRU X"FF".
+
+          05 FILLER          PIC X VALUE X"00".
+             88  FIN-FMVT-E        VALUE X"01" THRU X"FF".
+
+          05 WS-NBENR-LUS-FMVT-E PIC S9(8) COMP VALUE ZERO.
+
+      * GESTION DES ETATS DU FICHIER SEQUENTIEL FMVT-S
+       01 WS-FMVT-S.
+          05 WS-STATUS-FMVT-S PIC XX VALUE SPACE.
+
+          05 FILLER          PIC X VALUE X"00".
+             88 FMVT-S-OUVERT      VALUE X"01" THRU X"FF".
+
+          05 WS-NBENR-ECR-FMVT-S PIC S9(8) COMP VALUE ZERO.
+
+      * GESTION DES ETATS DU FICHIER SEQUENTIEL FANO
+       01 WS-FANO.
+          05 WS-STATUS-FANO  PIC XX VALUE SPACE.
+
+          05 FILLER          PIC X VALUE X"00".
+             88  FANO-OUVERT       VALUE X"01" THRU X"FF".
+
+          05 WS-NBENR-ERR-FANO  PIC S9(8) COMP VALUE ZERO.
+
+      * TESTE LE BON DEROULEMENT DU PROGRAMME
+      * CODE 0 : AUCUNE ERREUR
+      * CODE 4 : PROBLEME DANS LE TRAITEMENT DES DATA
+      * CODE 8 : TRAITEMENT ABANDONNER A CAUSE D'UNE ERREUR
+      *          DANS L'ALGORITHME OU STOPPE LE PROGRAMME
+      *          BATCH EN PRODUCTION POUR EVITER LES ERREUR EN CASCADE
+       01 WS-RETURN-CODE PIC 9 VALUE 0.                                 00830099
+          88 OK                VALUE 0.
+          88 WARNING           VALUE 4.
+          88 KO                VALUE 8.
+
+       PROCEDURE DIVISION.                                              00840050
+
+      ****************************************
+      * INITIATION
+      ****************************************
+       MD01-INITIALISE SECTION.                                         00850099
+      *---------------------------------------
+      *
+       INIT.                                                            00860099
+      *=======================================
+      * CORP DU PROGRAMME. DEMMARRE TOUTES LES SECTIONS.
+           PERFORM MD02-OPEN                                            00870099
+           PERFORM LECTURE-FMVT-E                                       00880099
+           PERFORM MD03-TRAITEMENT UNTIL FIN-FMVT-E                     00890099
+           PERFORM MD04-FIN-TRAITEMENT                                  00900099
+           STOP RUN.                                                    00910050
+                                                                        00920050
+       MD02-OPEN SECTION.                                               00930099
+      *---------------------------------------
+      *
+       OPEN-FMVT-E.                                                     00940099
+      *=======================================
+           OPEN INPUT FMVT-E                                            00950099
+      * OUVRE LE FICHIER MAITRE SEQUENTIEL FMVTE EN ENTRER.
+      * TESTE L'OUVERTURE ET RETOURNE UN MESSAGE D'ERREUR
+      * ET LE STATUS DU FICHIER EN CAS DE PROBLEME D'OUVERTURE
+      * RETURN : FMVT-E-OUVERT
+      * RETURN ÈDEBUGË : PROBLEME D'OUVERTURE DU FICHIER
+           IF WS-STATUS-FMVT-E NOT = ZERO THEN
+              DISPLAY "PROBLEME D'OUVERTURE FMVTE"
+              DISPLAY "CODE RETOUR" WS-STATUS-FMVT-E
+              SET WARNING TO TRUE
+              PERFORM MD04-FIN-TRAITEMENT
+           ELSE
+              SET FMVT-E-OUVERT TO TRUE
+           END-IF.
+       OPEN-OUTPUT-FMVT-S.                                              00960099
+      *=======================================
+      * OUVRE LE FICHIER SEQUENTIEL FMVTS DE SORTIE
+      * OU SONT ECRIS LES DATAS CORRECTES.
+      * RETOURNE UN MESSAGE D'ERREUR ET LE STATUS DU
+      * FICHIER EN CAS D'ERREUR D'OUVERTURE EN SORTIS
+      * RETURN : FMVT-S-OUVERT
+      * RETURN ÈDEBUGË : PROBLEME D'OUVERTURE DU FICHIER
+           OPEN OUTPUT FMVT-S                                           00970099
+           IF WS-STATUS-FMVT-S NOT = ZERO THEN
+              DISPLAY "PROBLEME D'OUVERTURE FMVTS"
+              DISPLAY "CODE RETOUR" WS-STATUS-FMVT-S
+              SET WARNING TO TRUE
+              PERFORM MD04-FIN-TRAITEMENT
+           ELSE
+              SET FMVT-S-OUVERT TO TRUE
+           END-IF.
+       OPEN-OUTPUT-FANO.                                                00980099
+      *=======================================
+      * OUVRE SYSOUT DU JCL POUR AFFICHER LES ANOMALIE DANS LES LOGS
+      * RETURN : FANO-OUVERT
+      * RETURN ÈDEBUGË : PROBLEME D'OUVERTURE DU FICHIER
+           OPEN OUTPUT FANO                                             00990099
+           IF WS-STATUS-FANO NOT = "00"
+              DISPLAY "PROBLEME D'OUVERTURE FANO"
+              DISPLAY "CODE RETOUR " WS-STATUS-FANO
+              SET WARNING TO TRUE
+              PERFORM MD04-FIN-TRAITEMENT
+           ELSE
+              SET FANO-OUVERT TO TRUE
+           END-IF.
+       OPEN-EXIT.                                                       01000099
+           EXIT.                                                        01010099
+                                                                        01020099
+      ****************************************
+      * TRAITEMENT PRINCIPALES
+      ****************************************
+       MD03-TRAITEMENT SECTION.                                         01030099
+      *---------------------------------------
+      *
+       TRAITEMENT.                                                      01040099
+      *=======================================
+      * ECRIS LES DATAS  CORRECTE DANS LE FICHIER SEQUENTIEL
+      * MVTS OU ECRIT LES ANOMALIE DANS LES LOGS SYSOUT
+           MOVE WS-E-PRT-MVT  TO E-CODE-PRD
+           MOVE WS-E-PRIX-MVT TO PRIX
+
+           IF  (WS-E-PRT-MVT NOT = ZERO)
+           AND (WS-E-TYPE-MVT (1:1) = "E" OR "S")
+           AND (WS-E-PRIX-MVT NOT = ZERO) THEN
+
+              WRITE ENR-FMVT-S FROM WS-ENR-FMVT-E
+              ADD 1 TO WS-NBENR-ECR-FMVT-S
+
+           ELSE
+              WRITE  ENR-ANO FROM WS-ENR-FMVT-E
+              ADD 1 TO WS-NBENR-ERR-FANO
+
+              EVALUATE TRUE
+                 WHEN WS-E-PRT-MVT = ZERO
+
+                    DISPLAY "* CODE PRODUIT ERRONE   : "
+                    E-CODE-PRD
+
+                 WHEN WS-E-TYPE-MVT NOT = "E" AND NOT = "S"
+
+                    DISPLAY "* TYPE DE MOUVEMENT ERRONE : "
+                    E-TYPE-MVT OF ENR-ANO
+
+                 WHEN WS-E-PRIX-MVT = ZERO
+
+                    DISPLAY "* LE PRIX EST EGAL A ZERO :"
+                    PRIX
+
+              END-EVALUATE
+
+
+           END-IF.
+       LECTURE-FMVT-E.                                                  01140099
+      *=======================================
+      * LIS LE FICHIER SEQUENTIEL MAITRE FMVTE.
+      *
+      * COMPTE LE NOMBRE D'ENREGISTREMENT LU SI ON VA PAS
+      * A LA FIN DU FICHIER OU FERME LA BOUCLE DE LA
+      * SECTION TRAITEMENT
+      *
+      * EN CAS D'ERREUR AFFICHE UN PROBLEME DE TRAITEMENT
+      * RETURN : LE STATUS DU FICHIER
+      * RETURN : LE NOMBRE DE LECTURE
+           READ FMVT-E INTO WS-ENR-FMVT-E                               01150099
+              AT END                                                    01160099
+                    SET FIN-FMVT-E TO TRUE
+              NOT AT END
+              IF WS-STATUS-FMVT-E NOT = ZERO THEN
+                  DISPLAY "PROBLEME DE LECTURE DU FICHIER MAITRE FMVTE"
+                  DISPLAY "CODE RETROUR : " WS-STATUS-FMVT-E
+
+                  IF WS-NBENR-LUS-FMVT-E >= 1
+                     DISPLAY "DERNIER ENREGISTREMENT LU : "
+                     WS-ENR-FMVT-E
+                  END-IF
+
+                  IF WS-STATUS-FMVT-E (1:1) = "3" OR "4" THEN
+                     SET KO TO TRUE
+                  ELSE
+                     SET WARNING TO TRUE
+                  END-IF
+              ELSE
+                  ADD 1 TO WS-NBENR-LUS-FMVT-E
+              END-IF
+           END-READ.                                                    01170099
+
+       TRAITEMENT-EXIT.                                                 01180099
+      *=======================================
+           EXIT.                                                        01190099
+
+      ****************************************
+      * FIN DE TRAITEMENT
+      ****************************************
+       MD04-FIN-TRAITEMENT SECTION.                                     01200099
+      *---------------------------------------
+      *
+       CLOSE-FMVT-E.
+      *=======================================
+      * FERME LE FICHIER SEQUENTIEL MAITRE FMVTE
+      * ET TEST S'IL Y A UNE ERREUR DE FERMETURE
+      *
+      * VALUE  FMVT-E-OUVERT ÈPRODË :EN CAS DE MODIFICATION DU PROGRAMME
+      *
+      * VALUE WS-STATUS-FMVT-E ÈDEBUGË : RETOURN LE STATUS DU FICHIER
+      *
+      * VALUE KO : CODE D'ERREUR 8,ABANDONNE LE TRAITEMENT
+           IF FMVT-E-OUVERT THEN
+              CLOSE FMVT-E
+              IF WS-STATUS-FMVT-E NOT = ZERO THEN
+                 DISPLAY "PROBLEME DE FERMETURE DU FICHIER FMVT-E"
+                 DISPLAY "CODE RETOUR : " WS-STATUS-FMVT-E
+                 SET KO TO TRUE
+              END-IF
+           END-IF.
+       CLOSE-FMVT-S.
+      *=======================================
+      * FERME LE FICHIER DE SORTIE SEQUENTIEL FMVTS
+      * ET TEST S'IL Y A UNE ERREUR DE FERMETURE
+      *
+      * VALUE FMVT-S-OUVERT ÈPRODË : EN CAS DE MODIFICATION DU PROGRAMME
+      *
+      * VALUE WS-STATUS-FMVT-S ÈDEBUGË : RETOURN LE STATUS DU FICHIER
+      *
+      * VALUE KO : CODE D'ERREUR 8,ABANDONNE LE TRAITEMENT
+           IF FMVT-S-OUVERT THEN
+              CLOSE FMVT-S
+              IF WS-STATUS-FMVT-S NOT = ZERO
+                 DISPLAY "PROBLEME DE FERMETURE DU FICHIER FMVT-S"
+                 DISPLAY "CODE RETROUR : " WS-STATUS-FMVT-S
+                 SET KO TO TRUE
+              END-IF
+           END-IF.
+
+       CLOSE-FANO.
+      *=======================================
+      * FERME LES LOGS DES ANOMALIES SYSOUT
+      * ET TEST SI IL Y A UNE ERREUR DE FERMETURE
+      *
+      * VALUE FANO-OUVERT ÈPRODË : EN CAS DE MODIFICATION DU PROGRAMME
+      *
+      * VALUE WS-STATUS-FANO ÈDEBUGË : RETOURN LE STATUS DU FICHIER
+      *
+      * VALUE KO : CODE D'ERREUR 8,ABANDONNE LE TRAITEMENT
+           IF FANO-OUVERT THEN
+              CLOSE FANO
+              IF WS-STATUS-FANO NOT = ZERO THEN
+                 DISPLAY " PROBLEME DE FERMETURE DU SYSOUT "
+                 DISPLAY " CODE RETOUR " WS-STATUS-FANO
+                 SET KO TO TRUE
+              END-IF
+           END-IF.
+
+
+       RAPPORT.                                                         01210037
+      *=======================================
+      * AFFICHE LES STATISTIQUES D'ENTREE / SORTIE
+      *
+      * VALUE WARNING ÈDEBUGË : TESTE L'OUVERTURE DES FICHIERS
+      *
+      * VALUE WS-NBENR-LUS-FMVT-E ÈDEBUGË : TEST S'IL Y A
+      * EU 0 LECTURE DANS LE FICHIER SEQUENTIEL MAITRE FMVTE
+      *
+      * VALUE KO ÈDEBUG/PRODË : TESTE S'IL Y A UNE ERREUR DANS
+      * DANS LA LOGIQUE ET L'ALGORITHME.
+      * STOP LE BATCH EN CAS D'ERREUR DANS LA PRODUCTION
+      *
+      * RETURN : WS-RETURN-CODE
+           EVALUATE TRUE
+              WHEN OK
+                DISPLAY "**********************************************"
+                DISPLAY "*   STATISTIQUE D'ENTREE / SORTIE"
+                DISPLAY "**********************************************"
+                DISPLAY "* NOMBRE DE LECTURE DE FMVTE  : "
+                        WS-NBENR-LUS-FMVT-E
+                DISPLAY "* NOMBRE D'ECRITURE FMVTS     : "
+                        WS-NBENR-ECR-FMVT-S
+                DISPLAY "* NOMBRE D'ERREUR             : "
+                        WS-NBENR-ERR-FANO
+                DISPLAY "**********************************************"
+                DISPLAY "* PROGRAMME PROJET1 : FIN NORMAL DU TRAITEMENT"
+                DISPLAY "**********************************************"
+             WHEN WARNING
+                IF WS-NBENR-LUS-FMVT-E = 0
+                DISPLAY "**********************************************"
+                DISPLAY "* PROGRAMME PROJET1 : PAS DE TRAITEMENT"
+                DISPLAY "* CODE RETOUR " WS-RETURN-CODE
+                DISPLAY "**********************************************"
+                ELSE
+                DISPLAY "**********************************************"
+                DISPLAY "* PROGRAMME PROJET1 : PAS DE TRAITEMENT"
+                DISPLAY "* CODE RETOUR " WS-RETURN-CODE
+                DISPLAY "* FIN ANORMAL DU TRAITEMENT "
+                DISPLAY "* PROBLEME  BLOQUANT "
+                DISPLAY "**********************************************"
+                END-IF
+             WHEN OTHER
+                DISPLAY "**********************************************"
+                DISPLAY "* PROGRAMME PROJET1 : ABEND"
+                DISPLAY "* CODE RETOUR " WS-RETURN-CODE
+                DISPLAY "**********************************************"
+                STOP RUN
+           END-EVALUATE
+                DISPLAY "* CODER LE PROGRAMME EN COBOL"
+           MOVE WS-RETURN-CODE TO RETURN-CODE.
+       FIN-EXIT.                                                        01230099
+      *=======================================
+           EXIT.                                                        01240099

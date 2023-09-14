@@ -1,0 +1,10 @@
+//FORI05A JOB ICCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID,      00010003
+//        TIME(,1)                                                      00020003
+//TRI     EXEC PGM=SORT                                                 00030000
+//SORTIN  DD DSN=FORI05.SEQ.PERSONNE,DISP=SHR                           00040003
+//SORTOUT DD DSN=FORI05.SEQ.ELEVE,DISP=(,CATLG,DELETE),                 00050003
+//        SPACE=(TRK,(1,5)),RECFM=FB,LRECL=80,BLKSIZE=800               00060002
+//SORTOUT DD *                                                          00070002
+  SORT FORMAT=CH,FIELDS=(1,3,A)                                         00080002
+//SYSOUT DD SYSOUT=*                                                    00090003
+//SYSPRINT DD SYSOUT=*                                                  00100000

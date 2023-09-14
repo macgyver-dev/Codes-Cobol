@@ -1,0 +1,11 @@
+//FORI05E  JOB ICCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID      00010002
+//STEP1 EXEC PGM=MONPROG5,TIME=(0,1)                                    00020020
+//STEPLIB DD DSN=FORI05.LIB.LOAD,DISP=SHR                               00030002
+//SYSIN DD *                                                            00080020
+//01                                                                    00090020
+//02                                                                    00100020
+//03                                                                    00110020
+//04                                                                    00120020
+//99                                                                    00130020
+//SYSPRINT  DD SYSOUT=*                                                 00140002
+//SYSOUT DD SYSOUT=*,OUTLIM=100                                         00150002

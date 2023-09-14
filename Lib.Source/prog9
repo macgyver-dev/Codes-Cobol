@@ -1,0 +1,125 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. PROG9.                                               00020099
+       AUTHOR. JULIEN DUBROMEZ.                                         00030000
+       ENVIRONMENT DIVISION.                                            00040000
+       CONFIGURATION SECTION.                                           00050000
+       SPECIAL-NAMES.                                                   00060000
+           DECIMAL-POINT IS COMMA.                                      00070000
+       INPUT-OUTPUT SECTION.                                            00080000
+       FILE-CONTROL.                                                    00090000
+           SELECT EMPLOYE ASSIGN TO DDIN1.                              00100099
+           SELECT EMPLOI ASSIGN TO DDIN2.                               00110099
+           SELECT EMPL ASSIGN TO DDOUT1.                                00120099
+           SELECT FANO ASSIGN TO DDOUT2.                                00130099
+       DATA DIVISION.                                                   00140000
+       FILE SECTION.                                                    00150008
+       FD EMPLOYE                                                       00160052
+           RECORDING MODE IS F                                          00170052
+           DATA RECORD ENREG-IN.                                        00180099
+       01  ENREG-IN.                                                    00190099
+           05 MAT          PIC X(4).                                    00200099
+           05 FILLER       PIC X(1).                                    00210099
+           05 NOM          PIC X(6).                                    00220099
+           05 FILLER       PIC X(4).                                    00230099
+           05 SURNAME      PIC X(6).                                    00240099
+           05 FILLER       PIC X(2).                                    00250099
+           05 DATE-FR      PIC X(10).                                   00260099
+           05 FILLER       PIC X(2).                                    00270099
+           05 SALAIRE      PIC 9(5)V99.                                 00280099
+           05 FILLER       PIC X(38).                                   00290099
+       FD EMPLOI                                                        00300099
+           RECORDING MODE IS F                                          00310099
+           DATA RECORD ENREG-OUT.                                       00320099
+       01  ENREG-OUT.                                                   00330099
+           05 MAT          PIC X(4).                                    00340099
+           05 FILLER       PIC X(1).                                    00350099
+           05 SALAIRE      PIC 9(5)V99.                                 00360099
+           05 FILLER       PIC X(68).                                   00370099
+       FD EMPL                                                          00380099
+           RECORDING MODE IS F                                          00390099
+           DATA RECORD ENREG-PERMANENT.                                 00400099
+       01  ENREG-PERMANENT.                                             00410099
+           05 MAT          PIC X(4).                                    00420099
+           05 FILLER       PIC X(1).                                    00430099
+           05 NOM          PIC X(6).                                    00440099
+           05 FILLER       PIC X(4).                                    00450099
+           05 SURNAME      PIC X(6).                                    00460099
+           05 FILLER       PIC X(2).                                    00470099
+           05 DATE-FR      PIC X(10).                                   00480099
+           05 FILLER       PIC X(2).                                    00490099
+           05 SALAIRE      PIC 9(5)V99.                                 00500099
+           05 FILLER       PIC X(38).                                   00510099
+                                                                        00520099
+       FD FANO                                                          00530099
+           RECORDING MODE IS F                                          00540099
+           DATA RECORD IS ENR-ANO.                                      00550099
+       01 ENR-ANO.                                                      00560099
+           05 MAT          PIC X(4).                                    00570099
+           05 FILLER       PIC X(1).                                    00580099
+           05 SALAIRE      PIC 9(5)V99.                                 00590099
+           05 FILLER       PIC X(68).                                   00600099
+       WORKING-STORAGE SECTION.                                         00610000
+       77 EOF PIC 9.                                                    00620099
+      *---------------------------------                                00630026
+      *  TRAITEMENT PRINCIPAL                                           00640026
+      *---------------------------------                                00650026
+       PROCEDURE DIVISION.                                              00660057
+      *=======================                                          00670028
+           PERFORM INIT.                                                00680099
+           PERFORM TRAITEMENT UNTIL EOF = 1.                            00690099
+           PERFORM FIN.                                                 00700099
+           STOP RUN.                                                    00710099
+      *---------------------------------                                00720099
+      *  INITIALISATION                                                 00730099
+      *---------------------------------                                00740099
+       INIT.                                                            00750099
+      *=======================                                          00760099
+           OPEN INPUT EMPLOYE EMPLOI.                                   00770099
+           OPEN OUTPUT EMPL FANO.                                       00780099
+           PERFORM LECTURE-1.                                           00790099
+           PERFORM LECTURE-2.                                           00800099
+      *=======================                                          00810053
+      *TRAITEMENT.                                                      00820053
+      *=======================                                          00830001
+       TRAITEMENT.                                                      00840082
+           EVALUATE TRUE                                                00850099
+           WHEN MAT OF ENREG-IN = MAT OF ENREG-OUT                      00860099
+              COMPUTE SALAIRE OF ENREG-PERMANENT = SALAIRE OF ENREG-IN -00870099
+              SALAIRE OF ENREG-OUT                                      00880099
+              MOVE MAT OF ENREG-IN TO MAT OF ENREG-PERMANENT            00890099
+              MOVE NOM OF ENREG-IN TO NOM OF ENREG-PERMANENT            00900099
+              MOVE SURNAME OF ENREG-IN TO SURNAME OF ENREG-PERMANENT    00910099
+              MOVE DATE-FR OF ENREG-IN TO DATE-FR OF ENREG-PERMANENT    00920099
+              WRITE ENREG-PERMANENT                                     00930099
+           WHEN MAT OF ENREG-IN < MAT OF ENREG-OUT                      00940099
+              MOVE MAT OF ENREG-IN TO MAT OF ENREG-PERMANENT            00950099
+              MOVE NOM OF ENREG-IN TO NOM OF ENREG-PERMANENT            00960099
+              MOVE SURNAME OF ENREG-IN TO SURNAME OF ENREG-PERMANENT    00970099
+              MOVE DATE-FR OF ENREG-IN TO DATE-FR OF ENREG-PERMANENT    00980099
+              WRITE ENREG-PERMANENT                                     00990099
+           WHEN MAT OF ENREG-IN > MAT OF ENREG-OUT                      01000099
+              MOVE MAT OF ENREG-IN TO MAT OF ENR-ANO                    01010099
+              MOVE SALAIRE OF ENREG-IN TO SALAIRE OF ENR-ANO            01020099
+              WRITE ENR-ANO                                             01030099
+           WHEN OTHER                                                   01040099
+              CLOSE EMPLOYE EMPLOI EMPL                                 01050099
+              EXIT                                                      01060099
+           END-EVALUATE                                                 01070099
+           PERFORM LECTURE-1                                            01080099
+           PERFORM LECTURE-2.                                           01090099
+       LECTURE-1.                                                       01100099
+           READ EMPLOI AT END                                           01110099
+             MOVE 1 TO EOF                                              01120099
+           END-READ.                                                    01130099
+       LECTURE-2.                                                       01140099
+           READ EMPLOYE AT END                                          01150099
+             MOVE 1 TO EOF                                              01160099
+           END-READ.                                                    01170099
+      *---------------------------------                                01180028
+       FIN.                                                             01190028
+      *=======================                                          01200009
+           CLOSE EMPLOYE EMPLOI EMPL.                                   01210099
+                                                                        01220099
+      *=======================                                          01230024
+      * FIN DE TRAITEMENT                                               01240022
+      *---------------------------------                                01250022

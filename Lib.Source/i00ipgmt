@@ -1,0 +1,56 @@
+       IDENTIFICATION DIVISION.                                         00020000
+       PROGRAM-ID. I00IPGMT.                                            00110000
+       ENVIRONMENT DIVISION.                                            00140000
+       DATA DIVISION.                                                   00160000
+       WORKING-STORAGE SECTION.                                         00170000
+           COPY I00IMAP.                                                00171000
+           COPY DFHAID.                                                 00173000
+           COPY DFHBMSCA.                                               00173100
+       77  TEXTE PIC X(60) VALUE 'FIN DE TRANSACTION...FAITES ENTER'.   00173200
+       77  CR PIC S9(8) BINARY.                                         00173300
+       LINKAGE SECTION.                                                 00210000
+       PROCEDURE DIVISION.                                              00570000
+              MOVE LOW-VALUE TO MAMAPO.                                 00570100
+               EXEC CICS                                                00570200
+               SEND MAP('MAMAP') MAPSET('I00IMAP')                      00570300
+                    FROM(MAMAPO)                                        00570400
+                    ERASE                                               00570500
+                    FREEKB                                              00570600
+                END-EXEC.                                               00570700
+                                                                        00810000
+                EXEC CICS                                               00810300
+                RECEIVE MAP('MAMAP') MAPSET('I00IMAP')                  00810400
+                    INTO(MAMAPI)  RESP(CR)                              00810500
+                END-EXEC.                                               00810900
+                                                                        00811000
+                IF CR = DFHRESP(MAPFAIL)                                00811100
+                AND  EIBAID = DFHPF3                                    00812000
+                    EXEC CICS SEND TEXT FROM(TEXTE) LENGTH(60) ERASE    00813000
+                    END-EXEC                                            00814000
+                    EXEC CICS RETURN END-EXEC                           00814100
+                END-IF.                                                 00814200
+                                                                        00814500
+                IF FONCTL = 0 AND NUMARTL > 0                           00817300
+                     MOVE  'FONCTION OBLIGATOIRE' TO MSGO               00817400
+                END-IF .                                                00817500
+                                                                        00817600
+                IF NUMARTL = 0 AND FONCTL > 0                           00817700
+                     MOVE 'NUM ARTICLE OLIGATOIRE' TO MSGO              00817800
+                END-IF.                                                 00817900
+                                                                        00818000
+                IF FONCTL = 0 AND NUMARTL = 0                           00818100
+                    MOVE 'SAISIE OBLIGATOIRE FAITES ENTER' TO MSGO      00818200
+                END-IF.                                                 00818300
+                                                                        00818400
+                IF FONCTL > 0     AND NUMARTL > 0                       00818500
+                       MOVE 'TOUT EST OK' TO MSGO                       00818600
+                END-IF.                                                 00818800
+              MOVE LOW-VALUE TO MAMAPO.                                 00818900
+              EXEC CICS                                                 00819200
+               SEND MAP('MAMAP') MAPSET('I00IMAP')                      00819300
+                    FROM(MAMAPO)                                        00819400
+                    ERASE                                               00819500
+                    FREEKB                                              00819600
+               END-EXEC                                                 00819700
+                                                                        00819800
+               EXEC CICS RETURN TRANSID('I00I') END-EXEC.               00830000

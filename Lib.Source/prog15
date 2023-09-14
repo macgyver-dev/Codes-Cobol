@@ -1,0 +1,42 @@
+       ID DIVISION.                                                     00010000
+       PROGRAM-ID. PROG15.                                              00020019
+       ENVIRONMENT DIVISION.                                            00030000
+       DATA DIVISION.                                                   00040000
+       WORKING-STORAGE SECTION.                                         00050000
+       01   W-DATE1.                                                    00060015
+            05 AAAA PIC 9(4).                                           00070015
+            05 MM   PIC 99.                                             00080015
+            05 JJ   PIC 99.                                             00090015
+                                                                        00100015
+       01 DATE-IMP.                                                     00110015
+            05 JOUR  PIC 99.                                            00120015
+            05       PIC X VALUE '/'.                                   00130015
+            05 MOIS  PIC 99.                                            00140015
+            05       PIC X VALUE '/'.                                   00150015
+            05 ANNEE PIC 9(4).                                          00160015
+                                                                        00170015
+       01   W-DATE2.                                                    00180017
+            05 AA PIC 99.                                               00190017
+            05 MM PIC 99.                                               00200017
+            05 JJ PIC 99.                                               00210017
+                                                                        00220015
+       01 DATE-IMP2.                                                    00230015
+            05 JOUR2   PIC 99.                                          00240015
+            05         PIC X VALUE '/'.                                 00250015
+            05 MOIS2   PIC 99.                                          00260015
+            05         PIC X VALUE '/'.                                 00270015
+            05 ANNEE2  PIC 9(2).                                        00280015
+                                                                        00290019
+       PROCEDURE DIVISION.                                              00300000
+           MOVE FUNCTION CURRENT-DATE TO W-DATE1.                       00310004
+           DISPLAY W-DATE1.                                             00320015
+                                                                        00330015
+           MOVE JJ OF W-DATE1 TO JOUR                                   00340018
+           MOVE MM OF W-DATE1 TO MOIS.                                  00350018
+           MOVE AAAA OF W-DATE1 TO ANNEE.                               00360018
+           DISPLAY DATE-IMP.                                            00370015
+                                                                        00380015
+           ACCEPT W-DATE2  FROM DATE.                                   00390006
+           DISPLAY W-DATE2.                                             00400015
+           STOP RUN.                                                    00410000
+                                                                        00420009

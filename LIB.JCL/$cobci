@@ -1,0 +1,12 @@
+//FORI05A JOB (),CLASS=I,MSGCLASS=I,MSGLEVEL=(1,1),NOTIFY=&SYSUID       00010019
+//*--------------------------------------------------------------*      00020002
+//*---     PROCEDURE DE COMPILATION DES PROGRAMMES CICS       ---*      00030002
+//*--------------------------------------------------------------*      00040002
+//*ICOBSCICS POUR GOUPE I, ACOBCICS POUR GROUPE A---------------*       00050018
+//PGMT    EXEC ICOBCICS,PGMT=I55IPGMT                                   00060033
+//LKED.SYSIN DD  *                                                      00070002
+  INCLUDE  SYSLIB(DFHELII)                                              00080002
+  ENTRY  I55IPGMT                                                       00090033
+  NAME   I55IPGMT(R)                                                    00100033
+//SYSPRINT   DD SYSOUT=*                                                00110026
+//SYSOUT     DD SYSOUT=*                                                00120022

@@ -1,0 +1,19 @@
+//FORI05E  JOB (),CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID                     00010008
+//*--------------------------------------------------------------*      00020000
+//*---     PROCEDURE DE COMPILATION DES PROGRAMMES BATCH/DB2  ---*      00030000
+//*--------------------------------------------------------------*      00040000
+//RUN      EXEC PGM=IKJEFT01,TIME=(0,5)                                 00050008
+//STEPLIB  DD   DISP=SHR,DSN=DB2F.SDSNEXIT                              00060008
+//         DD   DISP=SHR,DSN=DB2F.RUNLIB.LOAD                           00070008
+//         DD   DISP=SHR,DSN=CEE.SCEERUN                                00080008
+//FMVTS    DD   DSN=FORI05.SEQ.FMVTS,DISP=SHR                           00090008
+//PFORI    DD   SYSOUT=*                                                00100008
+//SYSOUT   DD   SYSOUT=*                                                00110008
+//SYSPRINT DD   SYSOUT=*                                                00120008
+//SYSTSPRT DD   SYSOUT=*                                                00130008
+//SYSTSIN  DD  *                                                        00140000
+ DSN SYSTEM(DB2F)                                                       00150000
+ RUN PROGRAM(PROJET2) PLAN(PLANFORI) -                                  00160006
+ LIBRARY('FORI99.LIB.LOAD')                                             00170004
+ END                                                                    00180000
+//                                                                      00190000

@@ -1,0 +1,5 @@
+//FORI05E  JOB ICCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID      00010000
+//STEP1 EXEC PGM=TEMPLATE,TIME=(,1)                                     00020000
+//STEPLIB DD DSN=FORI05.LIB.LOAD,DISP=SHR                               00030000
+//SYSPRINT  DD SYSOUT=*                                                 00110000
+//SYSOUT DD SYSOUT=*,OUTLIM=100                                         00120000

@@ -1,0 +1,62 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. EXO2DB.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MSG-ERR.
+           05 ERR-LEN  PIC S9(4) COMP VALUE +720.
+           05 ERR-TXT  PIC X(72) OCCURS 10 TIMES  INDEXED BY IX-ERR.
+       77 LEN-ERR-TXT  PIC S9(9) COMP VALUE +72.
+           EXEC SQL
+             INCLUDE SQLCA
+           END-EXEC.
+
+           EXEC SQL
+             INCLUDE TEMPL
+           END-EXEC.
+
+           EXEC SQL
+                DECLARE C1
+                CURSOR FOR SELECT NEMP, NOM, PRENOM, QUAL, SALAIRE
+                FROM TEMPL
+           END-EXEC.
+       77 WS-IND PIC S9(4) COMP.
+       PROCEDURE DIVISION.
+       TRAITEMENT-C1.
+           PERFORM OPEN-C1
+           PERFORM LECTURE-C1
+           THRU    ERREUR
+           UNTIL   SQLCODE = 100
+           PERFORM CLOSE-C1
+           PERFORM FIN.
+       OPEN-C1.
+           EXEC SQL
+                OPEN C1
+           END-EXEC.
+       LECTURE-C1.
+           EXEC SQL
+                FETCH C1
+                INTO :NEMP,:NOM,:PRENOM,:QUAL,:SALAIRE:WS-IND
+           END-EXEC
+
+           IF WS-IND = -1
+              MOVE 0 TO SALAIRE
+           END-IF
+
+
+          IF SQLCODE NOT = 100
+              DISPLAY NEMP ' ' NOM ' ' PRENOM ' ' QUAL ' ' SALAIRE.
+          END-IF.
+
+       ERREUR.
+           IF SQLCODE < ZERO AND SQLCODE NOT = -305  OR SQLCODE > 100
+              CALL 'DSNTIAR' USING SQLCA MSG-ERR LEN-ERR-TXT.
+              DISPLAY MSG-ERR.
+            GOBACK
+           END-IF.
+       CLOSE-C1.
+           EXEC SQL
+                CLOSE C1
+           END-EXEC.
+       FIN.
+           STOP RUN.

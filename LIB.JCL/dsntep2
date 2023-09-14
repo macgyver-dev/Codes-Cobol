@@ -1,0 +1,15 @@
+//FORI05A  JOB CLASS=I,MSGCLASS=I,MSGLEVEL=(1,1),                       00010007
+//  NOTIFY=&SYSUID,REGION=4096K                                         00020006
+//DSNTEP2 EXEC PGM=IKJEFT01                                             00030008
+//*   VERSION V11                                                       00040008
+//SYSPRINT DD SYSOUT=*                                                  00050008
+//SYSTSPRT DD SYSOUT=*                                                  00060008
+//SYSTSIN  DD  *                                                        00070008
+ DSN SYSTEM(DB2F)                                                       00080008
+ RUN PROGRAM(DSNTEP2) PLAN(DSNTEP2) -                                   00090013
+ LIB ('DB2F.RUNLIB.LOAD')                                               00100008
+ END                                                                    00110008
+//SYSIN  DD *                                                           00120008
+//*CREATE TABLE TEST (NUM INT)                                          00130010
+SELECT * FROM TEMPL                                                     00140012
+/*                                                                      00150011

@@ -1,0 +1,7 @@
+//FORI05A JOB (),CLASS=I,MSGCLASS=I,MSGLEVEL=(1,1),NOTIFY=&SYSUID       00010075
+//*--------------------------------------------------------------*      00020000
+//*---     PROCEDURE DE COMPILATION DES MAPS CICS             ---*      00030000
+//*--------------------------------------------------------------*      00040000
+//* IDFHMAPS POUR GROUPE I                                              00050074
+//MAPSET  EXEC IDFHMAPS,MAPNAME=I05IMAP                                 00060077
+//SYSPRINT DD SYSOUT=*                                                  00070000

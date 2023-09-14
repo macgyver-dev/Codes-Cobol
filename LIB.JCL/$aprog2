@@ -1,0 +1,8 @@
+//FORI05A JOB ('ACCTFORI'),'JULIEN',MSGCLASS=I,CLASS=I,NOTIFY=&SYSUID   00010001
+//COMPIL EXEC ICOBBTCH,PGMB=MONPROG2,GRPEHLQ='FORI05'                   00020003
+//SYSLINK DD DSN=FORI05.LIB.LOAD,DISP=SHR                               00030000
+//LKED.SYSIN DD *                                                       00040000
+  ENTRY MONPROG2                                                        00050003
+  NAME  MONPROG2 (R)                                                    00060003
+//SYSPRINT DD SYSOUT=*                                                  00070000
+//SYSOUT DD SYSOUT=*                                                    00080000

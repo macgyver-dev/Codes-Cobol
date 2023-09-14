@@ -1,0 +1,222 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. PROG6.                                               00020001
+       AUTHOR. JULIEN DUBROMEZ.                                         00030000
+       ENVIRONMENT DIVISION.                                            00040000
+       CONFIGURATION SECTION.                                           00050000
+       SPECIAL-NAMES.                                                   00060000
+           DECIMAL-POINT IS COMMA.                                      00070000
+       INPUT-OUTPUT SECTION.                                            00080000
+       FILE-CONTROL.                                                    00090000
+           SELECT FEMPLOYE ASSIGN TO FEMPLOYE                           00100039
+           FILE STATUS WS-STATUS-FEMPLOYE.                              00110039
+
+           SELECT FOUTPUT ASSIGN TO FOUTPUT                             00120040
+           FILE STATUS WS-STATUS-FOUTPUT.
+       DATA DIVISION.                                                   00130000
+       FILE SECTION.                                                    00140008
+       FD  FEMPLOYE                                                     00150038
+           RECORDING MODE IS F                                          00160013
+           DATA RECORD ENREG-INPUT.                                     00170016
+       01 ENREG-INPUT.                                                  00180016
+           05 NUMID        PIC X(4).                                    00190035
+           05 FILLER       PIC X(1).                                    00200010
+           05 NOM          PIC X(10).                                   00210010
+           05 PRENOM       PIC X(8).                                    00220037
+           05 DATE-FR      PIC X(10).                                   00230010
+           05 FILLER       PIC X(2).                                    00240037
+           05 SALAIRE      PIC X(7).                                    00250037
+           05 FILLER       PIC X(38).                                   00260037
+       FD  FOUTPUT                                                      00270029
+           RECORDING MODE IS F                                          00280016
+           DATA RECORD ENREG-OUT.                                       00290016
+       01 ENREG-OUT.                                                    00300016
+           05 NUMID        PIC X(4).                                    00310037
+           05 FILLER       PIC X(1).                                    00320037
+           05 NOM          PIC X(10).                                   00330037
+           05 PRENOM       PIC X(8).                                    00340037
+           05 DATE-FR      PIC X(10).                                   00350037
+           05 FILLER       PIC X(2).                                    00360037
+           05 SALAIRE      PIC X(7).                                    00370037
+           05 FILLER       PIC X(38).                                   00380037
+       WORKING-STORAGE SECTION.                                         00390000
+      * SAUVEGARDE EN MEMOIRE LES DATA DE LA DATA RECORDE EN CAS
+      * DE PROBLEME DURANT L'EXECUTION
+       01 WS-ENREG-INPUT.                                               00180016
+           05 WS-NUMID        PIC X(4).                                 00190035
+           05 FILLER          PIC X(1).                                 00200010
+           05 WS-NOM          PIC X(10).                                00210010
+           05 WS-PRENOM       PIC X(8).                                 00220037
+           05 WS-DATE-FR      PIC X(10).                                00230010
+           05 FILLER          PIC X(2).                                 00240037
+           05 WS-SALAIRE      PIC X(7).                                 00250037
+           05 FILLER          PIC X(38).                                00260037
+
+      * GERE L'OUVERTURE ET LA FERMETURE DU FICHIER EMPLOYE
+      * PERMET DE GERER LES ERREUR AVEC READ,OPEN ET CLOSE
+       01 WS-FEMPLOYE.
+          05 WS-STATUS-FEMPLOYE  PIC XX VALUE SPACE.
+
+          05 FILLER              PIC X  VALUE X"00".
+             88    FEMPLOYE-OUVERT      VALUE X"01" THRU X"FF".
+             88    FEMPLOYE-FERMER      VALUE X"00".
+
+          05 FILLER              PIC X  VALUE X"00".
+             88   FIN-FEMPLOYE          VALUE X"01" THRU X"FF".
+
+          05 WS-NBENR-LUS-FEMPLOYE PIC S9(8) COMP VALUE ZERO.
+
+      * VARIABLE POUR GERER LE FICHIER D'ECRITURE
+       01 WS-FOUTPUT.
+          05   WS-STATUS-FOUTPUT  PIC XX VALUE SPACE.
+
+          05                      PIC X  VALUE X"00".
+               88  FOUTPUT-OUVERT        VALUE X"01" THRU X"FF".
+
+          05   WS-NB-ENR-ECR-FOUTPUT PIC S9(8) COMP VALUE ZERO.
+
+       01 WS-RETURN-CODE PIC 9 VALUE 0.
+          88   OK              VALUE 0.
+          88   WARNING         VALUE 4.
+          88   KO              VALUE 8.
+
+       PROCEDURE DIVISION.                                              00410000
+      *---------------------------------                                00480027
+      *  INITIALISATION                                                 00490027
+      *---------------------------------                                00500027
+       M10-INITIALISE SECTION.
+       INIT.                                                            00420001
+      *=======================                                          00430028
+      * LECTURE DE LA SECTION QUI OUVRE TOUS LES FICHIER
+           PERFORM M20-OPEN                                             00440015
+      * LECTURE D'AVANCE QUI DE GERER LES FIN DE FICHIER PREMATURER
+           PERFORM LECTURE-INPUT
+           IF FIN-FEMPLOYE
+              PERFORM FIN
+           END-IF
+
+      * EXECUTE LA SECTION DU TRAITEMENT ET STOP A L'EXIT
+           PERFORM M30-TRAITEMENT UNTIL FIN-FEMPLOYE                    00450024
+           PERFORM M40-FIN-TRAITEMENT.
+
+       INIT-TRT-EXIT.
+      *=======================                                          00430028
+           EXIT.
+       M20-OPEN SECTION.
+      *=======================                                          00430028
+       OPEN-INPUT.                                                      00510015
+      *=======================                                          00520027
+      * LIT LE FICHIER SEQUENTIEL EMPLOYE
+           OPEN INPUT FEMPLOYE.                                         00530038
+           IF WS-STATUS-FEMPLOYE NOT = "00"
+             DISPLAY "PROBLEME OUVERTURE FEMPLOYE"
+             DISPLAY "CODE RETOUR " WS-STATUS-FEMPLOYE
+             SET WARNING TO TRUE
+             PERFORM FIN
+           END-IF.
+       OPEN-OUTPUT.
+      *=======================
+      * OUVRE LE FICHIER SEQUENTIEL D'ECRITURE
+           OPEN OUTPUT FOUTPUT                                          00540029
+           IF WS-STATUS-FOUTPUT NOT = "00"
+              DISPLAY "PROBLEME OUVERTURE FOUTPUT"
+              DISPLAY "CODE RETOUR " WS-STATUS-FOUTPUT
+              SET WARNING TO TRUE
+              PERFORM M40-FIN-TRAITEMENT
+           END-IF.
+       OPEN-EXIT.
+      *=======================
+           EXIT.
+      *---------------------------------                                00570038
+      *  TRAITEMENT PRINCIPAL                                           00580038
+      *---------------------------------                                00590038
+       M30-TRAITEMENT SECTION.                                          00470027
+      *=======================                                          00610001
+       WRITE-OUTPUT.
+      *=======================                                          00610001
+      * ECRIT DANS UN FICHIER SEQUENTIEL DE SORTIE
+           WRITE ENREG-OUT FROM WS-ENREG-INPUT                          00620024
+           IF WS-STATUS-FOUTPUT = ZERO THEN
+              ADD 1 TO WS-NB-ENR-ECR-FOUTPUT
+           ELSE
+              DISPLAY " PROBLEME D'ECRITURE"
+              DISPLAY " CODE RETOUR " WS-STATUS-FOUTPUT
+
+              IF WS-STATUS-FOUTPUT(1:1) = "3" OR "4"
+                 SET KO TO TRUE
+              ELSE
+                 SET WARNING TO TRUE
+              END-IF
+                PERFORM M40-FIN-TRAITEMENT
+           END-IF.
+       LECTURE-INPUT.
+      *=======================                                          00520027
+      * LECTURE DU FICHIER SEQUENTIEL EMPLOYE
+           READ FEMPLOYE                                                00550038
+           INTO WS-ENREG-INPUT
+           AT END
+                SET FIN-FEMPLOYE TO TRUE
+           NOT AT END
+              IF WS-STATUS-FEMPLOYE NOT = "00"
+                 DISPLAY "PROBLEME LECTURE FEMPLOYE"
+                 DISPLAY "CODE RETOUR " WS-STATUS-FEMPLOYE
+
+                 IF WS-NBENR-LUS-FEMPLOYE >= 1
+                    DISPLAY "DERNIER ENREGISTREMENT LU : "
+                    WS-ENREG-INPUT
+                 END-IF
+
+                 IF WS-STATUS-FEMPLOYE (1:1) = "3" OR "4"
+                    SET KO TO TRUE
+                 ELSE
+                    SET WARNING TO TRUE
+                 END-IF
+
+                 PERFORM FIN
+              ELSE
+                  ADD 1 TO WS-NBENR-LUS-FEMPLOYE
+              END-IF
+           END-READ.
+       TRAITEMENT-EXIT.
+      *=====================
+           EXIT.
+      *---------------------------------                                00650028
+      * FIN DE TRAITEMENT
+      *---------------------------------                                00650028
+       M40-FIN-TRAITEMENT SECTION.
+       FIN.                                                             00660028
+      *=======================                                          00670009
+      * GERE LES PROBLEME DE LECTURE ET D'ECRITURE
+      * POUR UN DEBUGAGE PLUS FACILE ET NE PAS RAGER COMME FRANKY
+           IF FOUTPUT-OUVERT THEN
+              CLOSE FOUTPUT                                             00680029
+              IF WS-STATUS-FOUTPUT NOT = ZERO THEN
+                 DISPLAY " PROBLEME DE FERMETURE DE FOUTPUT"
+                 DISPLAY " CODE RETOUR " WS-STATUS-FOUTPUT
+                 SET KO    TO TRUE
+              END-IF
+           END-IF
+
+           IF FEMPLOYE-OUVERT THEN
+              CLOSE FEMPLOYE                                            00690038
+              IF WS-STATUS-FEMPLOYE NOT = ZERO THEN
+                 DISPLAY " PROBLEME DE FERMETURE DE FEMPLOYE"
+                 DISPLAY " CODE RETOUR " WS-STATUS-FEMPLOYE
+                 SET KO TO TRUE
+              END-IF
+           END-IF
+
+           EVALUATE TRUE
+              WHEN OK
+                   DISPLAY "PROGRAMMME PROG6 : JOB FINI"
+                   DISPLAY "COPIE FINI"                                 00700025
+              WHEN WARNING
+                   DISPLAY "PROGRAMME PROG6 : PAS DE TRAITEMENT"
+              WHEN OTHER
+                   DISPLAY "PROGRAMME PROG6 : ABEND"
+           END-EVALUATE
+      * CODE 8 : ERREUR DE LOGIQUE.
+           MOVE WS-RETURN-CODE TO RETURN-CODE
+           STOP RUN.                                                    00460021
+
+       FIN-EXIT.
+           EXIT.

@@ -1,0 +1,35 @@
+//FEELMBR JOB CLASS=A,MSGCLASS=T,MSGLEVEL=(1,1),                        00010019
+//  NOTIFY=&SYSUID,REGION=4096K                                         00020000
+//JOBLIB  DD  DSN=DSNB10.SDSNLOAD,DISP=SHR                              00021017
+//*                                                   *                 00022017
+//*    A  = IDENTIFIANT GROUPE                                          00022100
+//*    03 = IDENTIFIANT STAGIAIRE                                       00022200
+//*    --------------------------                                       00022300
+//*    CHARGEMENT DE  TABLE                                             00022425
+//*                                                                   * 00022500
+//STEP1  EXEC PGM=DSNUTILB,PARM='DB2F,FEELMBR'                          00022619
+//SYSPRINT   DD SYSOUT=*                                                00022900
+//SYSREC00   DD  DSN=FEELMB.SEQ.CLIENT,DISP=SHR                         00023020
+//ERRDDN     DD  DSN=FEELMB.ERREUR,DISP=(,DELETE,DELETE),               00023122
+//             SPACE=(TRK,(1,1))                                        00023206
+//DISCAR     DD  DSN=FEELMB.DISCAR,DISP=(,DELETE,DELETE),               00023322
+//             SPACE=(TRK,(1,1))                                        00023406
+//MAPDDN     DD  DSN=FEELMB.MAP,DISP=(,DELETE,DELETE),                  00023522
+//             SPACE=(TRK,(1,1))                                        00023606
+//SYSUT1     DD  DSN=FEELMB.WRK,DISP=(,DELETE,DELETE),                  00023722
+//             SPACE=(TRK,(1,1))                                        00023807
+//SORTOUT    DD  DSN=FEELMB.SORT,DISP=(,DELETE,DELETE),                 00023922
+//             SPACE=(TRK,(1,1))                                        00024007
+//SYSIN  DD *                                                           00024107
+ LOAD DATA                                                              00024207
+ INDDN SYSREC00                                                         00024316
+ RESUME YES LOG NO                                                      00024407
+ ERRDDN ERRDDN                                                          00024507
+ MAPDDN MAPDDN                                                          00024607
+ DISCARDDN DISCAR                                                       00024707
+ INTO TABLE FEELMB.TCLIENT                                              00024818
+ (NUM POSITION(1:4) INTEGER EXTERNAL,                                   00025018
+  NOM POSITION (6:11) CHAR(6) ,                                         00026023
+  PRENOM POSITION(13:16) CHAR(4) ,                                      00027020
+  SOLDE POSITION(18:22) DECIMAL EXTERNAL,                               00028020
+  DATEMB POSITION(24:33) DATE EXTERNAL)                                 00029024

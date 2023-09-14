@@ -1,0 +1,15 @@
+//FORI05E  JOB ICCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID      00010002
+//STEP1 EXEC PGM=PROG12,TIME=(0,1)                                      00020019
+//STEPLIB DD DSN=FORI05.LIB.LOAD,DISP=SHR                               00030002
+//*DDIN1 DD DSN=FORI05.SEQ.EMPLOYE,DISP=SHR                             00040017
+//*DDIN2 DD DSN=FORI05.SEQ.EMPLOI,DISP=SHR                              00050017
+//*DDOUT1 DD DSN=FORI05.SEQ.EMPL,DISP=SHR                               00060017
+//*DDOUT2 DD SYSOUT=*                                                   00070017
+//*SYSIN DD *                                                           00080013
+//*01                                                                   00090008
+//*02                                                                   00100008
+//*03                                                                   00110008
+//*04                                                                   00120008
+//*99                                                                   00130008
+//SYSPRINT  DD SYSOUT=*                                                 00140002
+//SYSOUT DD SYSOUT=*,OUTLIM=100                                         00150002

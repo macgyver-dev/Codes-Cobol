@@ -1,0 +1,104 @@
+       IDENTIFICATION DIVISION.                                         00010004
+       PROGRAM-ID. PROGKSDS.                                            00020004
+       AUTHOR. PAT.                                                     00021005
+       ENVIRONMENT DIVISION.                                            00030004
+       CONFIGURATION SECTION.                                           00040004
+       SPECIAL-NAMES.                                                   00050001
+           DECIMAL-POINT  IS COMMA.                                     00060001
+       INPUT-OUTPUT SECTION.                                            00070004
+       FILE-CONTROL.                                                    00080004
+           SELECT FENTREE ASSIGN TO DDENTREE                            00090004
+           ORGANIZATION   IS INDEXED                                    00100001
+           RECORD KEY     IS MAT OF SRC                                 00110007
+           ACCESS MODE    IS RANDOM.                                    00120001
+                                                                        00130003
+           SELECT FMVT    ASSIGN TO DDMVT.                              00140001
+                                                                        00150003
+           SELECT FANOM   ASSIGN TO DDANOM.                             00160004
+                                                                        00170003
+       DATA DIVISION.                                                   00180005
+       FILE SECTION.                                                    00190005
+       FD FENTREE                                                       00200005
+           DATA RECORD    IS SRC.                                       00210005
+       01 SRC.                                                          00220005
+       COPY CLIENTS.                                                    00230001
+       FD FMVT                                                          00240001
+           RECORDING MODE IS F                                          00250005
+           DATA RECORD    IS MVT.                                       00260005
+       01 MVT.                                                          00270005
+       COPY MOUVEMEN.                                                   00280006
+       FD FANOM                                                         00290001
+           RECORDING MODE IS F                                          00300005
+           DATA RECORD    IS ANOM                                       00310001
+           LABEL RECORD   IS OMITTED.                                   00320001
+       01 ANOM.                                                         00330005
+       COPY CLIENTS.                                                    00340001
+       WORKING-STORAGE SECTION.                                         00350005
+       01 W-SRC.                                                        00360005
+       COPY CLIENTS.                                                    00370001
+       01 W-MVT.                                                        00380005
+       COPY MOUVEMEN.                                                   00390008
+       01 EOF  PIC 9.                                                   00400005
+       88 FINFIC VALUE 1.                                               00410001
+      *                                                                 00420001
+       PROCEDURE DIVISION.                                              00430005
+       TDM.                                                             00440005
+           PERFORM DEBUT      THRU F-DEBUT.                             00450005
+           PERFORM TRAITEMENT THRU F-TRAITEMENT UNTIL FINFIC.           00460005
+           PERFORM FIN        THRU F-FIN.                               00470005
+           STOP RUN.                                                    00480005
+       DEBUT.                                                           00490005
+           OPEN I-O    FENTREE.                                         00500005
+           OPEN INPUT  FMVT.                                            00510005
+           OPEN OUTPUT FANOM.                                           00520001
+           READ FMVT AT END MOVE 1 TO EOF.                              00530001
+       F-DEBUT.                                                         00540005
+           EXIT.                                                        00550005
+       TRAITEMENT.                                                      00560005
+           MOVE SPACES TO W-MVT                                         00561011
+                                                                        00562011
+           MOVE MAT OF MVT TO MAT OF SRC                                00570011
+           MOVE MAT OF MVT TO MAT OF W-MVT                              00571011
+           MOVE NOM OF MVT TO NOM OF W-MVT                              00572011
+           MOVE PRENOM OF MVT TO PRENOM OF W-MVT                        00573011
+           MOVE DATES OF MVT TO DATES OF W-MVT                          00574011
+           MOVE SOLDE OF MVT TO SOLDE OF W-MVT                          00575011
+           EVALUATE STATUT OF MVT                                       00580005
+           WHEN 'C'                                                     00590005
+                PERFORM CREATION     THRU F-CREATION                    00600002
+           WHEN 'D'                                                     00610005
+                PERFORM SUPPRESSION  THRU F-SUPPRESSION                 00620002
+           WHEN 'M'                                                     00630005
+                PERFORM MODIFICATION THRU F-MODIFICATION                00640002
+           WHEN ' ' CONTINUE                                            00650005
+           WHEN OTHER                                                   00660002
+                WRITE ANOM FROM MVT AFTER ADVANCING 1 LINE              00670002
+           END-EVALUATE.                                                00680002
+           READ FMVT AT END MOVE 1 TO EOF.                              00690001
+       F-TRAITEMENT.                                                    00700005
+           EXIT.                                                        00710001
+       CREATION.                                                        00720005
+           WRITE   SRC  FROM W-MVT INVALID KEY                          00730010
+             WRITE ANOM FROM MVT AFTER ADVANCING 1 LINE                 00740002
+           END-WRITE.                                                   00750002
+       F-CREATION.                                                      00760005
+           EXIT.                                                        00770005
+       SUPPRESSION.                                                     00780005
+           DELETE  FENTREE INVALID KEY                                  00790002
+             WRITE ANOM    FROM MVT AFTER ADVANCING 1 LINE              00800002
+           END-DELETE.                                                  00810002
+       F-SUPPRESSION.                                                   00820005
+           EXIT.                                                        00830005
+       MODIFICATION.                                                    00840005
+           READ FENTREE                                                 00850002
+           REWRITE SRC   FROM W-MVT INVALID KEY                         00860010
+             WRITE ANOM  FROM MVT AFTER ADVANCING 1 LINE                00870002
+           END-REWRITE.                                                 00880002
+       F-MODIFICATION.                                                  00890005
+           EXIT.                                                        00900005
+       FIN.                                                             00910005
+           CLOSE FENTREE.                                               00920005
+           CLOSE FMVT.                                                  00930005
+           CLOSE FANOM.                                                 00940005
+       F-FIN.                                                           00950005
+           EXIT.                                                        00960005

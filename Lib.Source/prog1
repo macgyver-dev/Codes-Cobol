@@ -1,0 +1,124 @@
+       IDENTIFICATION DIVISION.                                         00010007
+       PROGRAM-ID. MONPROG1.                                            00020010
+       AUTHOR. Julien Dubromez.                                         00030007
+       ENVIRONMENT DIVISION.                                            00040007
+       CONFIGURATION SECTION.                                           00050007
+       SPECIAL-NAMES.                                                   00060007
+           DECIMAL-POINT IS COMMA.                                      00070012
+       INPUT-OUTPUT SECTION.                                            00080007
+       FILE-CONTROL.                                                    00090008
+           SELECT LISTE ASSIGN TO DDLISTE                               00100019
+           FILE STATUS  WS-STATUS-FLISTE.                               00110029
+       DATA DIVISION.                                                   00120012
+       FILE SECTION.                                                    00130012
+       FD  LISTE                                                        00140013
+           RECORDING MODE IS F                                          00150005
+           DATA RECORD ENREG.                                           00160000
+       01 ENREG.                                                        00170011
+           05 NBR PIC 99.                                               00180012
+           05 FILLER PIC X(78).                                         00190012
+                                                                        00200007
+       WORKING-STORAGE SECTION.                                         00210011
+       77 MAX PIC 99 VALUE 0.                                           00220011
+       01 WS-ENREG.                                                     00230028
+          05 WS-NBR PIC 99.                                             00240028
+          05 FILLER PIC X(78).                                          00250029
+       01 WS-FLISTE.                                                    00260027
+          05 WS-STATUS-FLISTE PIC XX VALUE SPACE.                       00270029
+                                                                        00280027
+          05                 PIC X     VALUE X"00".                     00290027
+             88 FLISTE-OUVERT VALUE X"01" THRU X"FF".                   00300027
+             88 FLISTE-FERMER          VALUE X"00".                     00310027
+                                                                        00320027
+          05                 PIC X     VALUE X"00".                     00330027
+             88 FIN-FLISTE             VALUE X"01" THRU X"FF".          00340027
+          05 WS-NBENR-LUS-FLISTE PIC S9(8) COMP VALUE ZERO.             00350027
+                                                                        00360027
+       01 WS-RETURN-CODE  PIC 9    VALUE 0.                             00370027
+           88 OK       VALUE 0.                                         00380027
+           88 WARNING  VALUE 4.                                         00390027
+           88 KO       VALUE 8.                                         00400027
+                                                                        00410024
+       PROCEDURE DIVISION.                                              00420011
+       S10-INITIALISE SECTION.                                          00430019
+           PERFORM MD01-INIT-TRT.                                       00440021
+      * PREMIER LECTURE DE LISTE                                        00450029
+           PERFORM MD02-TRT THRU MD03-LECTUTRE-TRT                      00460029
+           IF FIN-FLISTE                                                00470029
+              PERFORM MD04-FIN                                          00480029
+           END-IF                                                       00490029
+      *  LECTURE DE CHAQUE ENREGISTREMENT DE LISTE                      00500029
+           PERFORM MD02-TRT THRU MD03-LECTUTRE-TRT UNTIL FIN-FLISTE     00510030
+           PERFORM MD04-FIN.                                            00520027
+      *---------------------------------                                00530019
+      *  INITIALISATION                                                 00540019
+      *---------------------------------                                00550019
+       MD01-INIT-TRT.                                                   00560021
+      *===============                                                  00570014
+           OPEN INPUT LISTE                                             00580014
+           IF WS-STATUS-FLISTE NOT = "00"                               00590029
+             DISPLAY " PROGRAMME MONPROG1, VERSION 1.0"                 00600020
+             DISPLAY " ERREUR D'OUVERTURE DDLISTE"                      00610020
+             DISPLAY " CODE RETOUR " WS-STATUS-FLISTE                   00620029
+             DISPLAY " PAS DE TRAITEMENT"                               00630020
+             SET WARNING TO TRUE                                        00640024
+             GOBACK                                                     00650020
+           ELSE                                                         00660024
+             SET FLISTE-OUVERT TO TRUE                                  00670024
+           END-IF.                                                      00680030
+      *---------------------------------                                00690019
+      *  TRAITEMENT PRINCIPAL                                           00700019
+      *---------------------------------                                00710019
+       MD02-TRT.                                                        00720027
+      *============                                                     00730014
+           IF NBR > MAX                                                 00740011
+             MOVE NBR TO MAX                                            00750011
+           END-IF.                                                      00760011
+       MD03-LECTUTRE-TRT.                                               00770027
+           READ LISTE INTO WS-ENREG                                     00780029
+           AT END                                                       00790027
+              SET FIN-FLISTE TO TRUE                                    00800027
+           NOT AT END                                                   00810027
+               IF WS-STATUS-FLISTE NOT = ZERO                           00820027
+                 DISPLAY "PROBLEME DE LECTURE LISTE"                    00830029
+                 DISPLAY "CODE RETOUR " WS-STATUS-FLISTE                00840029
+                                                                        00850029
+                 IF WS-NBENR-LUS-FLISTE >= 1                            00860029
+                    DISPLAY "DERNIER ENREG LU : " WS-ENREG              00870029
+                 END-IF                                                 00880029
+                                                                        00890029
+                 IF WS-STATUS-FLISTE (1:1) = "3" OR "4"                 00900029
+                    SET KO TO TRUE                                      00910029
+                 ELSE                                                   00920029
+                    SET WARNING TO TRUE                                 00930029
+                 END-IF                                                 00940029
+               ELSE                                                     00950029
+                  ADD 1 TO WS-NBENR-LUS-FLISTE                          00960030
+               END-IF                                                   00970027
+           END-READ.                                                    00980011
+      *---------------------------------                                00990015
+      * FIN DE TRAITEMENT                                               01000020
+      *---------------------------------                                01010015
+       MD04-FIN.                                                        01020027
+           IF FLISTE-OUVERT                                             01030024
+              CLOSE LISTE                                               01040024
+              IF WS-STATUS-FLISTE NOT = "00"                            01050029
+                 DISPLAY "PROBLEME DE FERMETURE LISTE"                  01060024
+                 DISPLAY "CODE RETOUR " WS-STATUS-FLISTE                01070029
+                 SET KO TO TRUE                                         01080024
+              END-IF                                                    01090024
+           END-IF                                                       01100024
+                                                                        01110024
+           DISPLAY 'LE NOMBRE LE PLUS GRAND EST ' MAX                   01120025
+                                                                        01130024
+           EVALUATE TRUE                                                01140024
+              WHEN OK                                                   01150024
+                DISPLAY "PROGRAMME MONPROG1 : FIN NORMAL DU PROGRAMME"  01160024
+              WHEN WARNING                                              01170024
+                DISPLAY "PROGRAMME MONPROG1 : PAS DE TRAITEMENT"        01180024
+              WHEN OTHER                                                01190026
+                DISPLAY "PROGRAMME MONPROG1 : ABEND"                    01200024
+                SET KO TO TRUE                                          01210026
+           END-EVALUATE                                                 01220026
+           MOVE WS-RETURN-CODE TO RETURN-CODE                           01230026
+           STOP RUN.                                                    01240026

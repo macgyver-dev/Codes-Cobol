@@ -1,0 +1,26 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. IA5IPGMT.                                            00020059
+      * SOUS PROGRAMME I55IPGMT                                         00030056
+       ENVIRONMENT DIVISION.                                            00040000
+       DATA DIVISION.                                                   00050000
+       WORKING-STORAGE SECTION.                                         00060000
+       77  INFOS PIC X(60).                                             00070050
+       LINKAGE SECTION.                                                 00080000
+       01 DFHCOMMAREA.                                                  00090050
+           05 LENTFC PIC X.                                             00100050
+           05 LENTCL PIC 9(4).                                          00110050
+       PROCEDURE DIVISION.                                              00120057
+           EVALUATE LENTFC                                              00130054
+           WHEN 'L'                                                     00140050
+           MOVE 'LECTURE' TO INFOS                                      00150050
+           WHEN 'C'                                                     00160050
+           MOVE 'CONSULTATION' TO INFOS                                 00170050
+           WHEN 'M'                                                     00180050
+           MOVE 'MODIFICATION' TO INFOS                                 00190050
+           WHEN 'D'                                                     00200050
+           MOVE 'DESTRUCTION' TO INFOS                                  00210050
+           END-EVALUATE                                                 00220054
+           EXEC CICS SEND TEXT FROM (INFOS) LENGTH(60) ERASE            00230050
+           END-EXEC.                                                    00240050
+                                                                        00250047
+           EXEC CICS RETURN TRANSID('I55I') END-EXEC.                   00260055

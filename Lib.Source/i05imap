@@ -1,0 +1,41 @@
+I05IMAP DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,CTRL=(FREEKB,FRSET),*00010036
+               TIOAPFX=YES,MAPATTS=(COLOR,HILIGHT)                      00020000
+IMAP05 DFHMDI SIZE=(24,80)                                              00030038
+*LIGNE 1                                                                00040019
+        DFHMDF POS=(1,15),                                             *00050035
+               LENGTH=19,                                              *00060011
+               ATTRB=ASKIP,                                            *00070035
+               INITIAL='GESTION DES CLIENTS'                            00080010
+DATE    DFHMDF POS=(1,60),                                             *00090035
+               LENGTH=10,                                              *00100000
+               ATTRB=(ASKIP,NORM)                                       00110020
+*LIGNE 10                                                               00120019
+        DFHMDF POS=(10,20),                                            *00130035
+               LENGTH=5,                                               *00140021
+               ATTRB=(ASKIP,NORM),                                     *00150021
+               INITIAL='NCLI'                                           00160021
+NCLI    DFHMDF POS=(10,26),                                            *00170035
+               LENGTH=4,                                               *00180019
+               ATTRB=(UNPROT,NORM,IC,NUM)                               00190025
+        DFHMDF POS=(10,31),                                            *00200035
+               LENGTH=1,                                               *00210019
+               ATTRB=(ASKIP)                                            00220019
+*LIGNE 14                                                               00230019
+        DFHMDF POS=(14,20),                                            *00240026
+               LENGTH=9,                                               *00250026
+               ATTRB=(ASKIP,NORM),                                     *00260026
+               INITIAL='FONCTION'                                       00270019
+FNCT    DFHMDF POS=(14,30),                                            *00280019
+               LENGTH=1,                                               *00290019
+               ATTRB=(UNPROT,NORM)                                      00300023
+        DFHMDF POS=(14,32),                                            *00310032
+               LENGTH=1,                                               *00320019
+               ATTRB=(ASKIP)                                            00330024
+*LIGNE 24                                                               00340019
+MSG     DFHMDF POS=(24,1),                                             *00350037
+               LENGTH=79,                                              *00360019
+               INITIAL='F3 : SORTIE',                                  *00370034
+               ATTRB=(ASKIP,NORM),                                     *00380030
+               COLOR=YELLOW                                             00390033
+        DFHMSD TYPE=FINAL                                               00400001
+        END                                                             00410000

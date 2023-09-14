@@ -1,0 +1,66 @@
+        IDENTIFICATION DIVISION.                                        00010000
+        PROGRAM-ID. PROG8.                                              00020013
+        AUTHOR. JULIEN.                                                 00030005
+        ENVIRONMENT DIVISION.                                           00040000
+        CONFIGURATION SECTION.                                          00050010
+        SPECIAL-NAMES.                                                  00060000
+           DECIMAL-POINT IS COMMA.                                      00070009
+        INPUT-OUTPUT SECTION.                                           00080013
+        FILE-CONTROL.                                                   00090000
+           SELECT LISTE ASSIGN TO LISTE                                 00100014
+           FILE STATUS WS-STATUS-FLISTE.                                00110014
+                                                                        00120009
+        DATA DIVISION.                                                  00130010
+        FILE SECTION.                                                   00140010
+      * FICHIER EN ENTRER                                               00150016
+        FD LISTE                                                        00160010
+           RECORDING MODE IS F                                          00170017
+           DATA RECORD ENR-LISTE.                                       00180017
+        01  ENR-LISTE.                                                  00190017
+               05 NBR PIC 99.                                           00200017
+               05 FILLER PIC X(78).                                     00210017
+        WORKING-STORAGE SECTION.                                        00220009
+                                                                        00230009
+        01  SOMME PIC 99 VALUE 0.                                       00240003
+        01  WS-ENR-LISTE.                                               00250009
+            05 WS-NBR PIC 99.                                           00260009
+            05 FILLER PIC X(78).                                        00270009
+        01 WS-LISTE.                                                    00280015
+           05 WS-STATUS-FLISTE PIC XX VALUE SPACE.                      00290016
+                                                                        00300015
+           05 FILLER           PIC X  VALUE X"00".                      00310016
+              88   FLISTE-OUVERT     VALUE X"01" THRU X"FF".            00320015
+              88   FLISTE-FERMER     VALUE X"00".                       00330015
+           05 FILLER           PIC X  VALUE X"00".                      00340016
+              88   FIN-FLISTE        VALUE X"01" THRU X"FF".            00350016
+                                                                        00360015
+        PROCEDURE DIVISION.                                             00370000
+        INITIALISE SECTION.                                             00380015
+        INIT.                                                           00390009
+            PERFORM OPEN-LISTE                                          00400009
+            PERFORM LECTURE-ENR-LISTE                                   00410009
+            PERFORM TRAITEMENT UNTIL FIN-FLISTE                         00420019
+            PERFORM FIN-TRAITEMENT                                      00430019
+            STOP RUN.                                                   00440019
+                                                                        00450002
+        OPEN-LISTE.                                                     00460009
+            OPEN INPUT LISTE.                                           00470009
+                                                                        00480002
+        TRAITEMENT SECTION.                                             00490009
+        CALL-TRT.                                                       00500011
+            CALL 'PROG88' USING WS-NBR.                                 00510018
+                                                                        00520009
+        LECTURE-ENR-LISTE.                                              00530009
+            READ LISTE                                                  00540009
+            INTO  WS-ENR-LISTE                                          00550018
+            AT END                                                      00560009
+               SET FIN-FLISTE TO TRUE                                   00570020
+            END-READ.                                                   00580002
+        TRAITEMENT-EXIT.                                                00590009
+           EXIT.                                                        00600009
+        FIN-TRAITEMENT SECTION.                                         00610009
+        FIN.                                                            00620002
+            DISPLAY 'NBR=' NBR                                          00630009
+            CLOSE LISTE.                                                00640002
+        FIN-EXIT.                                                       00650009
+           EXIT.                                                        00660009

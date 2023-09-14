@@ -1,0 +1,8 @@
+//FORI05A JOB ICCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID       00010003
+//COPIE    EXEC PGM=IEBGENER                                            00020003
+//SYSUT1   DD   DSN=FORI01.LIB.SQL.SELECT1,DISP=SHR                     00030008
+//*SYSUT2   DD   DSN=FORI05.OUT,DISP=(NEW,CATLG,DELETE),                00040007
+//*         SPACE=(TRK,(1,1)),RECFM=FB,LRECL=80,BLKSIZE=800             00050007
+//SYSUT2   DD   DSN=FORI05.LIB.SQL.SELECT1,DISP=SHR                     00060008
+//SYSIN    DD DUMMY                                                     00070003
+//SYSPRINT DD SYSOUT=*                                                  00080002

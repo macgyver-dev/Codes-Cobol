@@ -1,0 +1,135 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. PROG7.                                               00020099
+       AUTHOR. JULIEN DUBROMEZ.                                         00030000
+       ENVIRONMENT DIVISION.                                            00040000
+       CONFIGURATION SECTION.                                           00050000
+       SPECIAL-NAMES.                                                   00060000
+           DECIMAL-POINT IS COMMA.                                      00070000
+       INPUT-OUTPUT SECTION.                                            00080000
+       FILE-CONTROL.                                                    00090000
+           SELECT EMPLOYE ASSIGN TO DDINJOB.                            00100052
+           SELECT FIMP ASSIGN TO DDOUTJOB.                              00110042
+       DATA DIVISION.                                                   00120000
+       FILE SECTION.                                                    00130008
+       FD  FIMP                                                         00140038
+           RECORDING MODE IS F                                          00150040
+           DATA RECORD ENR-IMP.                                         00160064
+       01 ENR-IMP PIC X(132).                                           00170064
+       FD EMPLOYE                                                       00180052
+           RECORDING MODE IS F                                          00190052
+           DATA RECORD ENREG.                                           00200070
+       01  ENREG.                                                       00210099
+           05 MAT          PIC X(4).                                    00220099
+           05 FILLER       PIC X(1).                                    00230099
+           05 NOM          PIC X(6).                                    00240099
+           05 FILLER       PIC X(4).                                    00250099
+           05 SURNAME      PIC X(6).                                    00260099
+           05 FILLER       PIC X(2).                                    00270099
+           05 DATE-FR      PIC X(10).                                   00280099
+           05 FILLER       PIC X(2).                                    00290099
+           05 SALAIRE      PIC 9(5)V99.                                 00300099
+           05 F            PIC X(38).                                   00310099
+       WORKING-STORAGE SECTION.                                         00320000
+       77 EOF             PIC 9 VALUE 0.                                00330094
+       77 WS-NB           PIC 9(7) VALUE 0.                             00340099
+       77 WS-SOMME        PIC 9(7) VALUE 0.                             00350099
+       77 WS-SPACE        PIC X(7) VALUE SPACE.                         00360099
+       01 WS-TOTAL-ZONE.                                                00370098
+           05 WS-TOTAL        PIC X(5) VALUE 'TOTAL'.                   00380099
+           05 WS-LINE-SPACE   PIC X(20).                                00390098
+           05 WS-TOTAL-NB     PIC 9(7).                                 00400098
+           05 WS-NB-COMMA     PIC 9B9(3)V9(2).                          00410098
+       01 WS-HEADER-1.                                                  00420041
+           05 FILLER     PIC X(1)  VALUE SPACE.                         00430087
+           05 FILLER     PIC X(50)  VALUE ALL '*'.                      00440045
+           05 FILLER     PIC X(81).                                     00450087
+       01 WS-HEADER-2.                                                  00460041
+           05 FILLER     PIC X(1)   VALUE SPACE.                        00470087
+           05 FILLER     PIC X(1)    VALUE '*'.                         00480041
+           05 FILLER     PIC X(15)   VALUE SPACE.                       00490081
+           05 FILLER     PIC X(18)   VALUE 'LISTE DES EMPLOYES'.        00500080
+           05 FILLER     PIC X(15)   VALUE SPACE.                       00510081
+           05 FILLER     PIC X(1)    VALUE '*'.                         00520041
+           05 FILLER     PIC X(79).                                     00530087
+       01 WS-HEADER-COLUMN.                                             00540041
+           05 WS-MAT       PIC X(9)  VALUE 'MATRICULE'.                 00550052
+           05 FILLER       PIC X(1).                                    00560099
+           05 WS-NAME      PIC X(3)  VALUE 'NOM'.                       00570052
+           05 FILLER       PIC X(7).                                    00580099
+           05 WS-SURNAME   PIC X(6)  VALUE 'PRENOM'.                    00590087
+           05 FILLER       PIC X(1).                                    00600099
+           05 WS-DATE      PIC X(15) VALUE 'DATE D EMBAUCHE'.           00610072
+           05 FILLER       PIC X(1).                                    00620099
+           05 WS-SALAIRE   PIC X(7)  VALUE 'SALAIRE'.                   00630088
+           05 FILLER       PIC X(72).                                   00640099
+       01 WS-COLUMN.                                                    00650084
+           05 FILLER            PIC X(5) VALUE SPACE.                   00660099
+           05 WS-DATA-MAT       PIC 9(4).                               00670099
+           05 FILLER            PIC X(1).                               00680099
+           05 WS-DATA-NAME      PIC X(6).                               00690099
+           05 FILLER            PIC X(4).                               00700099
+           05 WS-DATA-SURNAME   PIC X(6).                               00710099
+           05 FILLER            PIC X(2).                               00720099
+           05 WS-DATA-DATE      PIC X(10).                              00730099
+           05 FILLER            PIC X(2).                               00740099
+           05 WS-NB-SAL         PIC Z9(5)V99.                           00750099
+           05 F PIC X(84).                                              00760099
+      *---------------------------------                                00770026
+      *  TRAITEMENT PRINCIPAL                                           00780026
+      *---------------------------------                                00790026
+       PROCEDURE DIVISION.                                              00800057
+      *=======================                                          00810028
+       DEBUT.                                                           00820074
+           OPEN INPUT EMPLOYE.                                          00830075
+           OPEN OUTPUT FIMP.                                            00840075
+           READ EMPLOYE AT END                                          00850075
+              MOVE 1 TO EOF                                             00860075
+           END-READ.                                                    00870075
+      *---------------------------------                                00880027
+      *  INITIALISATION                                                 00890027
+      *---------------------------------                                00900027
+       INIT.                                                            00910015
+      *=======================                                          00920027
+           PERFORM HEADER.                                              00930075
+           PERFORM TRAITEMENT UNTIL EOF = 1.                            00940082
+           PERFORM TOTAL.                                               00950093
+           PERFORM FIN.                                                 00960075
+           STOP RUN.                                                    00970075
+       HEADER.                                                          00980064
+           WRITE ENR-IMP FROM WS-HEADER-1 AFTER ADVANCING 1 LINE.       00990064
+           WRITE ENR-IMP FROM WS-HEADER-2 AFTER ADVANCING 1 LINE.       01000064
+           WRITE ENR-IMP FROM WS-HEADER-1 AFTER ADVANCING 1 LINE.       01010066
+           WRITE ENR-IMP FROM WS-HEADER-COLUMN AFTER ADVANCING 1 LINE.  01020066
+      *=======================                                          01030053
+      *TRAITEMENT.                                                      01040053
+      *=======================                                          01050001
+       TRAITEMENT.                                                      01060082
+           MOVE MAT OF ENREG TO WS-DATA-MAT OF WS-COLUMN.               01070086
+           MOVE NOM OF ENREG TO  WS-DATA-NAME OF WS-COLUMN.             01080086
+           MOVE SURNAME OF ENREG TO WS-DATA-SURNAME OF WS-COLUMN.       01090086
+           MOVE DATE-FR OF ENREG TO WS-DATA-DATE OF WS-COLUMN.          01100088
+           MOVE SALAIRE OF ENREG TO WS-NB-SAL OF WS-COLUMN.             01110094
+           MOVE WS-NB-SAL OF WS-COLUMN TO WS-NB.                        01120095
+           COMPUTE WS-SOMME = WS-SOMME + WS-NB.                         01130099
+           MOVE WS-SOMME TO WS-TOTAL-NB OF WS-TOTAL-ZONE.               01140099
+           WRITE ENR-IMP FROM WS-COLUMN AFTER ADVANCING 1 LINE.         01150083
+           READ EMPLOYE AT END                                          01160082
+             MOVE 1 TO EOF                                              01170082
+           END-READ.                                                    01180082
+       TOTAL.                                                           01190092
+           MOVE WS-TOTAL-NB                                             01200098
+           OF WS-TOTAL-ZONE                                             01210098
+           TO WS-NB-COMMA OF WS-TOTAL-ZONE.                             01220098
+           MOVE WS-SPACE                                                01230098
+           TO WS-TOTAL-NB OF WS-TOTAL-ZONE.                             01240099
+           WRITE ENR-IMP                                                01250098
+           FROM WS-TOTAL-ZONE                                           01260098
+           AFTER ADVANCING 1 LINE.                                      01270098
+      *---------------------------------                                01280028
+       FIN.                                                             01290028
+      *=======================                                          01300009
+           CLOSE EMPLOYE.                                               01310077
+           CLOSE FIMP.                                                  01320068
+      *=======================                                          01330024
+      * FIN DE TRAITEMENT                                               01340022
+      *---------------------------------                                01350022

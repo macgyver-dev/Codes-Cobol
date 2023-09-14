@@ -1,0 +1,13 @@
+//FORI05A JOB ICCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID,      00010000
+//            TIME=(,1)                                                 00020000
+//ETAPE1 EXEC  PGM=IDCAMS                                               00030000
+//SYSPRINT DD  SYSOUT=*                                                 00040000
+//SYSOUT   DD  SYSOUT=*                                                 00050000
+//SYSIN    DD  *                                                        00060000
+ DEFINE CLUSTER(NAME(FORI05.VSAM.FENTREE)-                              00070001
+          TRK(1,1) -                                                    00080000
+          IXD  -                                                        00090000
+         RECSZ(80,80) -                                                 00100000
+         KEYS(4 0))                                                     00110000
+ REPRO IDS(FORI05.SEQ.CLIENT) ODS (FORI05.VSAM.FENTREE)                 00120002
+ PRINT IDS(FORI05.VSAM.FENTREE) CHAR                                    00130001

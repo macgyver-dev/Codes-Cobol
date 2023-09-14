@@ -1,0 +1,17 @@
+//FORI05A  JOB CLASS=I,MSGCLASS=I,MSGLEVEL=(1,1),                       00010006
+//  NOTIFY=&SYSUID                                                      00020001
+//JOBLIB  DD  DSN=DSNB10.SDSNLOAD,DISP=SHR                              00030001
+//*                                                                     00040001
+//*  DECHARGEMENT PAR UNLOAD DE LA TABLE DES DEPT                       00050001
+//*                                                                     00060001
+//STEP1  EXEC PGM=DSNUTILB,PARM='DB2F,UNLOAD'                           00070001
+//SYSREC   DD DSN=FORI05.FICH.SYSREC8,DISP=(NEW,CATLG,DELETE),          00080005
+//         SPACE=(CYL,1)                                                00090001
+//SYSPUNCH DD DSN=FORI05.FICH.PUNCH8,DISP=(NEW,CATLG,DELETE),           00100005
+//         SPACE=(CYL,1)                                                00110001
+//SYSPRINT DD SYSOUT=*                                                  00120001
+//UTPRINT  DD SYSOUT=*                                                  00130001
+//SYSIN    DD *                                                         00140001
+  UNLOAD TABLESPACE DSN04935.TDEPT                                      00150005
+  FROM   TABLE FORI05.TDEPT                                             00160005
+//                                                                      00170001

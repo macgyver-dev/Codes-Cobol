@@ -1,0 +1,20 @@
+//FORI05A  JOB ACCTFORI,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID      00010000
+//*=======================================================              00020000
+//*        FILE:  ESCREEN                                               00030001
+//*        USAGE: EXECUTE LE PROGRAMME MONPROG7                         00040001
+//*        DESCRIPTION:  FILE DAS SOURCE                                00050000
+//*        COPYRIGHT (C) LIBRE DE DROIT                                 00060000
+//*        BUGS:  ---                                                   00070000
+//*        NOTES:    CONTACT J.DUBROMEZ.IT@GMAIL.COM FOR BUG.           00080000
+//*        AUTHOR:   DUBROMEZ JULIEN                                    00090000
+//*        COMPANY:  FEELL EUROPE.                                      00100000
+//*        VERSION:  1.0                                                00110000
+//*        CREATED:  03/10/2018 CEST                                    00120000
+//*        REVISION:  ---                                               00130000
+//*=====================================================                00140000
+//STEP1    EXEC PGM=MONPROG7,TIME=(,2)                                  00150001
+//STEPLIB  DD DSN=FORI05.LIB.LOAD,DISP=SHR                              00160000
+//DDINJOB  DD DSN=FORI05.SEQ.EMPLOYE,DISP=SHR                           00170001
+//SYSPRINT DD SYSOUT=*                                                  00180000
+//DDOUTJOB DD SYSOUT=*                                                  00190003
+//SYSOUT   DD SYSOUT=*,OUTLIM=100                                       00200000

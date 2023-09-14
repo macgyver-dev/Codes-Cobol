@@ -1,0 +1,129 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. MONPROG4.                                            00020001
+       AUTHOR. Julien Dubromez.                                         00030000
+                                                                        00040000
+       ENVIRONMENT DIVISION.                                            00050000
+       CONFIGURATION SECTION.                                           00060000
+       SPECIAL-NAMES.                                                   00070000
+            DECIMAL-POINT IS COMMA.                                     00080000
+       INPUT-OUTPUT SECTION.                                            00090000
+       FILE-CONTROL.                                                    00100000
+            SELECT FLISTE ASSIGN TO FLISTE                              00110015
+            FILE STATUS WS-STATUS-FLISTE.                               00120015
+       DATA DIVISION.                                                   00130000
+       FILE SECTION.                                                    00140000
+       FD  FLISTE                                                       00150015
+           RECORDING MODE IS F                                          00160011
+           DATA RECORD ENREG.                                           00170011
+                                                                        00180000
+       01  ENREG.                                                       00190011
+            05 NBR PIC 99.                                              00200011
+            05 FILLER PIC x(78).                                        00210011
+                                                                        00220000
+       WORKING-STORAGE SECTION.                                         00230001
+       77   SOMME PIC 99 VALUE 0.                                       00240011
+                                                                        00260000
+       01 WS-ENR-LISTE.                                                 00270015
+          05 WS-NBR PIC 99.                                             00280015
+          05 FILLER PIC X(78).                                          00290015
+                                                                        00300015
+       01 WS-FLISTE.                                                    00310015
+          05 WS-STATUS-FLISTE PIC XX VALUE SPACE.                       00320015
+                                                                        00330015
+          05 FILLER           PIC X  VALUE X"00".
+             88   FLISTE-OUVERT      VALUE X"01" THRU X"FF".
+             88   FLISTE-FERMER      VALUE X"00".
+
+          05 FILLER           PIC X  VALUE X"00".
+             88   FIN-FLISTE         VALUE X"01" THRU X"FF".
+
+          05 WS-NBENR-LUS-FLISTE PIC S9(8) COMP VALUE ZERO.
+
+       01 WS-RETURN-CODE PIC 9 VALUE 0.
+          88 OK      VALUE 0.
+          88 WARNING VALUE 4.
+          88 KO      VALUE 8.
+
+       PROCEDURE DIVISION.                                              00370001
+      *-------------------------------------                            00380015
+      * INITIALISATION                                                  00390015
+      *-------------------------------------                            00400015
+       S10-INITIALISE SECTION.                                          00410015
+      *=====================================                            00620015
+       INIT.                                                            00420015
+      *=====================================                            00620015
+           PERFORM INIT-FLISTE                                          00430015
+           PERFORM LECTURE-FLISTE-TRT
+           PERFORM TRAITEMENT UNTIL FIN-FLISTE                          00440002
+           PERFORM FIN.                                                 00450001
+       INIT-FLISTE.                                                     00470015
+      *=====================================                            00620015
+           OPEN INPUT FLISTE.                                           00480015
+           IF WS-STATUS-FLISTE NOT = "00" THEN                          00490015
+              DISPLAY " PROGRAMME MONPROG4, VERSION 2.0"                00500015
+              DISPLAY " ERREUR D'OUVERTURE FLISTE"                      00510015
+              DISPLAY " CODE RETOUR " WS-STATUS-FLISTE                  00520015
+              SET WARNING TO TRUE                                       00530015
+              GOBACK                                                    00540015
+           ELSE                                                         00550015
+              SET FLISTE-OUVERT TO TRUE                                 00560015
+           END-IF.                                                      00570015
+      *-------------------------------------                            00580015
+      * TRAITEMENT PRINCIPAL                                            00590015
+      *-------------------------------------                            00600015
+       TRAITEMENT.                                                      00610001
+      *=====================================                            00620015
+           PERFORM CALCUL-TRT
+           PERFORM LECTURE-FLISTE-TRT.
+      *-------------------------------------                            00660015
+      * TRAITEMENT                                                      00650015
+      *-------------------------------------                            00640015
+       CALCUL-TRT.
+      *=====================================                            00620015
+             COMPUTE SOMME = SOMME + WS-NBR.                            00630006
+       LECTURE-FLISTE-TRT.                                              00670015
+      *=====================================                            00680015
+             READ FLISTE INTO WS-ENR-LISTE                              00690015
+                AT END                                                  00700011
+                     SET FIN-FLISTE TO TRUE
+                NOT AT END
+                     IF WS-STATUS-FLISTE NOT = ZERO THEN
+                        DISPLAY "PROBLEME DE LECTURE FLISTE"
+                        DISPLAY "CODE RETOUR " WS-STATUS-FLISTE
+                           IF WS-NBENR-LUS-FLISTE >= 1
+                              DISPLAY "DERNIER ENR-FEMPLOYE LU : "
+                              DISPLAY  WS-ENR-LISTE
+                           END-IF
+                        SET WARNING TO TRUE
+                     ELSE
+                        ADD 1 TO WS-NBENR-LUS-FLISTE
+                     END-IF
+             END-READ.                                                  00710013
+      *--------------------------------------                           00720015
+      * FIN DE TRAITEMENT.                                              00730015
+      *--------------------------------------                           00740015
+       FIN.                                                             00750001
+      *======================================                           00760015
+      * TEST SI LE NOM INTERNE FLISTE EST OUVERT POUR LE
+      * LE FERMER
+             DISPLAY 'LE TOTAL DES NOMBRE EST DE ' SOMME                00770011
+             IF FLISTE-OUVERT THEN
+                CLOSE FLISTE                                            00780015
+                IF WS-STATUS-FLISTE NOT = "00"
+                   DISPLAY "PROBLEME DE FERMETURE FLISTE"
+                   DISPLAY "CODE RETOUR" WS-STATUS-FLISTE
+                   SET KO TO TRUE
+                END-IF
+             END-IF
+
+      * AFFICHE LE RESULTAT DU TRAITEMENT
+             EVALUATE TRUE
+                WHEN OK
+                   DISPLAY "PROGRAMME MONPROG4 : FIN NORMAL DU LOGICIEL"E"
+                WHEN WARNING
+                   DISPLAY "PROGRAMME MONPROG4 : PAS DE TRAITEMENT"
+                WHEN OTHER
+                   DISPLAY "PROGRAMME MONPROG4 : ABEND"
+                   SET KO TO TRUE
+             END-EVALUATE
+             STOP RUN.

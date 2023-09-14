@@ -1,0 +1,15 @@
+//FORI05A  JOB ,CLASS=I,MSGCLASS=I,MSGLEVEL=(1,1),                      00010017
+//  NOTIFY=&SYSUID                                                      00020000
+//JOBLIB  DD  DISP=SHR,DSN=DB2F.SDSNEXIT                                00030010
+//        DD  DISP=SHR,DSN=DB2F.RUNLIB.LOAD                             00040010
+//        DD  DISP=SHR,DSN=CEE.SCEERUN                                  00050008
+//STEP0  EXEC PGM=IKJEFT01                                              00060000
+//SYSOUT  DD SYSOUT=*                                                   00070000
+//SYSPRINT DD SYSOUT=*                                                  00080000
+//SYSTSPRT DD SYSOUT=*                                                  00090000
+//SYSTSIN  DD  *                                                        00100000
+ DSN SYSTEM(DB2F)                                                       00110010
+ RUN PROGRAM(DSNTIAD) PLAN(DSNTIAD)                                     00120017
+ END                                                                    00130015
+//SYSIN DD *                                                            00140015
+ CREATE TABLE T2 (C1 INT);                                              00150015

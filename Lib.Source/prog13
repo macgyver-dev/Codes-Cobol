@@ -1,0 +1,47 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. PROG13.                                              00020011
+       AUTHOR. JULIEN DUBROMEZ.                                         00030011
+       ENVIRONMENT DIVISION.                                            00040000
+       CONFIGURATION SECTION.                                           00050000
+       SPECIAL-NAMES.                                                   00060000
+           DECIMAL-POINT IS COMMA.                                      00070000
+                                                                        00080000
+       INPUT-OUTPUT SECTION.                                            00090000
+       FILE-CONTROL.                                                    00100000
+           SELECT FMOIS ASSIGN TO FMOIS.                                00110013
+                                                                        00120000
+       DATA DIVISION.                                                   00130000
+       FILE SECTION.                                                    00140000
+       FD  FMOIS                                                        00150013
+           RECORDING MODE IS F                                          00160000
+           DATA RECORD ENREG-MOIS.                                      00170001
+       01  ENREG-MOIS.                                                  00180001
+           05 NUM     PIC 99.                                           00190001
+           05         PIC X.                                            00200001
+           05 MOIS    PIC X(10).                                        00210001
+           05         PIC X(67).                                        00220001
+       WORKING-STORAGE SECTION.                                         00230000
+       01 I   PIC 99 VALUE 1.                                           00240001
+       01 TAB-MOIS.                                                     00250004
+          05 ARRAY-MOIS OCCURS 12.                                      00260004
+             10 NUME     PIC 99.                                        00270004
+             10 MONTH    PIC X(10).                                     00280004
+                                                                        00290001
+       PROCEDURE DIVISION.                                              00300000
+       DEBUT.                                                           00310000
+           PERFORM INIT                                                 00320000
+           PERFORM TRAITEMENT UNTIL I = 13                              00330007
+           PERFORM FIN                                                  00340000
+           STOP RUN.                                                    00350000
+       INIT.                                                            00360000
+           OPEN INPUT FMOIS.                                            00370013
+                                                                        00380001
+       TRAITEMENT.                                                      00390000
+           READ FMOIS                                                   00400013
+           MOVE NUM TO NUME(I)                                          00410009
+           MOVE MOIS TO MONTH(I)                                        00420009
+           DISPLAY "MOIS : " MONTH(I)                                   00430014
+           ADD 1 TO I.                                                  00440001
+       FIN.                                                             00450000
+           DISPLAY TAB-MOIS                                             00460010
+           CLOSE FMOIS.                                                 00470013

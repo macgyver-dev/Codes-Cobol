@@ -1,0 +1,31 @@
+//FORI05A JOB ACCTFORA,'JULIEN',CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID       00010099
+//STEP1    EXEC ICOBBTCH,PGMB=PROJET1,GRPEHLQ='FORI05'                  00020099
+//LKED.SYSIN DD *                                                       00030000
+  ENTRY PROJET1                                                         00040099
+  NAME  PROJET1(R)                                                      00050099
+//SYSOUT   DD SYSOUT=*,OUTLIM=100                                       00060099
+//RUNBIN   EXEC PGM=PROJET1,TIME=(,2)                                   00070099
+//STEPLIB  DD DSN=FORI05.LIB.LOAD,DISP=SHR                              00080099
+//FMVTE    DD DSN=FORI05.SEQ.FMVTE,DISP=SHR                             00090099
+//FMVTS    DD DSN=FORI05.SEQ.FMVTS,DISP=SHR                             00100099
+//*FMVTE   DD DSN=FORI05.SEQ.FMVTE,DISP=(,CATLG,DELETE),                00110099
+//*   SPACE=(TRK,(1,1)),RECFM=FB,LRECL=80,BLKSIZE=800                   00120099
+//*FMVTS   DD DSN=FORI05.SEQ.FMVTS,DISP=(,CATLG,DELETE),                00130099
+//*   SPACE=(TRK,(1,1)),RECFM=FB,LRECL=80,BLKSIZE=800                   00140099
+//FANO     DD SYSOUT=*                                                  00150099
+//SYSPRINT DD SYSOUT=*                                                  00160099
+//SYSOUT   DD SYSOUT=*,OUTLIM=100                                       00170099
+//*--------------------------------------------------------------*      00180099
+//*---     PROCEDURE DE COMPILATION DES PROGRAMMES BATCH/DB2  ---*      00190099
+//*--------------------------------------------------------------*      00200099
+//STEP2    EXEC ICOBBTDB,PGMB=PROJET2,OUTC=I                            00210099
+//LKED.SYSIN DD  *                                                      00220099
+   INCLUDE SYSLIB(DSNELI)                                               00230099
+   NAME PROJET2(R)                                                      00240099
+//*                                                                     00250099
+//BIND.SYSIN DD  *                                                      00260099
+   DSN SYSTEM(DB2F)                                                     00270099
+   BIND PACKAGE(COLLFORI),MEMBER(PROJET2) -                             00280099
+   LIBRARY('FORI05.LIB.DBRM') ACTION (REPLACE) VALIDATE (BIND) -        00290099
+   QUALIFIER(FORI05)  ISOLATION(CS)                                     00300099
+//*                                                                     00310099

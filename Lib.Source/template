@@ -1,0 +1,14 @@
+       IDENTIFICATION DIVISION.                                         00010002
+       PROGRAM-ID. TEMPLATE.                                            00020002
+       AUTHOR. JULIEN DUBROMEZ.                                         00030002
+       ENVIRONMENT DIVISION.                                            00040002
+       CONFIGURATION SECTION.                                           00050002
+       SPECIAL-NAMES.                                                   00060002
+           DECIMAL-POINT IS COMMA.                                      00070002
+       INPUT-OUTPUT SECTION.                                            00080002
+       FILE-CONTROL.                                                    00090002
+       DATA DIVISION.                                                   00100002
+       WORKING-STORAGE SECTION.                                         00110002
+       PROCEDURE DIVISION.                                              00120002
+           DISPLAY 'HELLO WORLD'                                        00130004
+           STOP RUN.                                                    00140002

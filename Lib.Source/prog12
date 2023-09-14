@@ -1,0 +1,33 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. PROG12.                                              00020048
+       AUTHOR. JULIEN.                                                  00030036
+      * TABLEAU REDEFINES                                               00040032
+                                                                        00050032
+       ENVIRONMENT DIVISION.                                            00060000
+       CONFIGURATION SECTION.                                           00070000
+       SPECIAL-NAMES.                                                   00080000
+           DECIMAL-POINT IS COMMA.                                      00090000
+                                                                        00100000
+       INPUT-OUTPUT SECTION.                                            00110006
+       FILE-CONTROL.                                                    00120006
+                                                                        00130006
+       DATA DIVISION.                                                   00140000
+       FILE SECTION.                                                    00150006
+       WORKING-STORAGE SECTION.                                         00160006
+       77 I PIC 99 VALUE 1.                                             00170053
+       77 J PIC 99 VALUE 1.                                             00180053
+       01 TABLEAU.                                                      00190051
+           05 LIGNE OCCURS 10 TIMES.                                    00200055
+              10 COLONNE 99 OCCURS 5 TIMES.                             00210055
+       PROCEDURE DIVISION.                                              00220000
+           PERFORM VARYING J FROM 1 BY 1 UNTIL I > 10                   00230056
+             PERFORM VARYING I FROM 1 BY 1 UNTIL J > 5                  00240056
+               MOVE ZERO TO COLONNE(I,J)                                00250057
+             END-PERFORM                                                00260051
+           END-PERFORM                                                  00270051
+                                                                        00280051
+             PERFORM VARYING J FROM 1 BY 1 UNTIL J > 10                 00290057
+               PERFORM VARYING I FROM 1 BY 1 UNTIL I > 10               00300057
+                 DISPLAY COLONNE(I,J)                                   00310057
+               END-PERFORM                                              00320057
+             END-PERFORM                                                00330057

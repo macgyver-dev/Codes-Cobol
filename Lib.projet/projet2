@@ -1,0 +1,442 @@
+       IDENTIFICATION DIVISION.                                         00010007
+       PROGRAM-ID. PROJET2.                                             00020091
+       AUTHOR. JULIEN DUBROMEZ.                                         00030035
+       ENVIRONMENT DIVISION.                                            00040007
+       CONFIGURATION SECTION.                                           00050007
+       SPECIAL-NAMES.                                                   00060007
+           DECIMAL-POINT IS COMMA.                                      00070012
+       INPUT-OUTPUT SECTION.                                            00080007
+       FILE-CONTROL.                                                    00090008
+           SELECT FMVT-S ASSIGN TO FMVTS                                00100094
+           FILE STATUS  WS-STATUS-FMVT-S.                               00110094
+                                                                        00120095
+           SELECT F-ETAT ASSIGN TO PFORI                                00130095
+           FILE STATUS  WS-STATUS-FETAT.                                00140095
+                                                                        00150095
+       DATA DIVISION.                                                   00160012
+       FILE SECTION.                                                    00170012
+       FD  FMVT-S                                                       00180094
+           RECORDING MODE IS F                                          00190005
+           DATA RECORD IS ENR-FMVT-S.                                   00290095
+       01 ENR-FMVT-S.
+          05 E-CODE-PRDT PIC X(4).
+          05 FILLER PIC X(3).
+          05 E-PRIX-PRDT PIC S9(5)V99.
+          05 FILLER      PIC X(66).                                     00410095
+                                                                        00260094
+       FD F-ETAT                                                        00270095
+           RECORDING MODE IS F                                          00280095
+           DATA RECORD IS ENR-FETAT.                                    00290095
+       01 ENR-FETAT PIC X(132).                                         00300095
+                                                                        00310095
+       WORKING-STORAGE SECTION.                                         00320011
+      * PERMET DE FAIRE LE CALCUL TOTAL DU NOUVEAUX PRIX APRES L'UPDATE
+      * DE TOUS LES NOUVEAU PRIX MIS A JOUR
+       77 WS-MONTANT-TOTAL PIC S9(15)V99 VALUE ZERO.                    00240094
+      * CALCUL LE NOMBRE D'UPDATE SQL
+       77 WS-NB-PRDT-MAJ   PIC S9(8) COMP VALUE ZERO.                   00350096
+
+      * PERMET DE GARDER EN MEMOIRE LES DATA DE LA
+      * DATA RECORDE (ENREGISTREMENT NON PERSISTANT
+      * DANS LA DATA RECORDE)
+       01 WS-ENR-FMVTS.                                                 00370095
+           05 WS-ENR-CODE-PRDT PIC 9(4).                                00380095
+           05 FILLER           PIC X(3).                                00390095
+           05 WS-ENR-PRIX-PRDT PIC S9(5)V99.                            00400095
+           05 FILLER           PIC X(66).                               00410095
+                                                                        00420049
+      * GESTION DES ETATS DU FICHIER MAITRE SEQUENTIEL FMVT-S
+       01 WS-FMVT-S.                                                    00430094
+           05 WS-STATUS-FMVT-S PIC XX VALUE SPACE.                      00440094
+                                                                        00450027
+           05 FILLER           PIC X     VALUE X"00".                   00460096
+              88 FMVT-S-OUVERT VALUE X"01" THRU X"FF".                  00470094
+                                                                        00480027
+           05 FILLER          PIC X     VALUE X"00".                    00490035
+              88 FIN-FMVT-S             VALUE X"01" THRU X"FF".         00500094
+           05 WS-NB-ENR-LUS-FMVT-S PIC S9(8) COMP VALUE ZERO.           00510094
+
+      * GESTION DES ETATS DU FICHIER SEQUENTIEL FETAT                   00520027
+       01 WS-FETAT.                                                     00530096
+           05 WS-STATUS-FETAT PIC XX VALUE SPACE.                       00540096
+                                                                        00550096
+           05 FILLER          PIC X     VALUE X"00".                    00560096
+              88 F-ETAT-OUVERT VALUE X"01" THRU X"FF".                  00570096
+                                                                        00580096
+           05 WS-NB-ENR-ECR-FETAT PIC S9(8) COMP VALUE ZERO.            00590096
+
+      *VARIABLE D'AFFICHAGE DANS FETAT                                  00600096
+       01 WS-HEADER-1.
+           05 FILLER     PIC X(1)  VALUE SPACE.
+           05 FILLER     PIC X(50)  VALUE ALL '*'.
+           05 FILLER     PIC X(81).
+      * TITRE DE LA FEUILLE D'IMPR{SSION DANS FETAT
+       01 WS-HEADER-2.
+           05 FILLER     PIC X(1)    VALUE SPACE.
+           05 FILLER     PIC X(1)    VALUE '*'.
+           05 FILLER     PIC X(15)   VALUE SPACE.
+           05 FILLER     PIC X(25)   VALUE "LISTE DES PRIX MIS A JOUR".
+           05 FILLER     PIC X(1)    VALUE SPACE.
+           05 FILLER     PIC X(1)    VALUE '*'.
+      * AFFICHE L'ENTETE DU TABLEAU DANS FETAT DANS FETAT
+       01 WS-HEADER-COLUMN.
+           05 WS-CODE-PRDT PIC X(9)  VALUE "CODE PRDT".
+           05 FILLER       PIC X(1).
+           05 WS-LIB-PRDT  PIC X(15) VALUE "LIBELLE DU PRDT".
+           05 FILLER       PIC X(1).
+           05 WS-OLD-PRIX  PIC X(11) VALUE "ANCIEN PRIX".
+           05 FILLER       PIC X(1).
+           05 WS-NEW-PRIX  PIC X(12) VALUE "NOUVEAU PRIX".
+      * AFFICHE LES LIGNE  SQL DANS FETAT.
+       01 WS-ROWS.
+           05 WS-ROW-CODE-PRDT PIC X(9)  VALUE SPACE.
+           05 FILLER       PIC X(1).
+           05 WS-ROW-LIB-PRDT  PIC X(18) VALUE SPACE.
+           05 FILLER       PIC X(1).
+           05 WS-ROW-OLD-PRIX  PIC ZZBZZ9,99 VALUE SPACE.
+           05 FILLER       PIC X(1).
+           05 WS-ROW-NEW-PRIX  PIC ZZBZZ9,99 VALUE SPACE.
+
+      * RETOUR CHARIO, FAIS UN SAUT DE PAGE
+       01  WS-JUMP.
+           05 FILLER       PIC X(132).
+      * AFFICHE LE TOTAL DES PRIX
+      * DE TOUS LES PRODUIT MIS A JOUR AVEC L'UPDATE SQL DANS FETAT
+       01  WS-TOTAL-STOCK.
+           05 FILLER      PIC X(40)
+              VALUE "MONTANT DE LA VALORISATION DU STOCK :".
+           05 FILLER      PIC X(5).
+           05 WS-TOTAL    PIC ZZBZZ9,99 VALUE SPACE.
+
+      *VARIABLE DATE POUR METTRE A JOUR LA DATE DANS LA TABLE DB2
+       01 WS-DATE.
+           05 AAAA PIC 9(4).
+           05 MM   PIC 99.
+           05 JJ   PIC 99.
+
+       01 WS-DATE-DB2.
+           05 JOUR         PIC 99.
+           05 FILLER       PIC X VALUE '.'.
+           05 MOIS         PIC 99.
+           05 FILLER       PIC X VALUE '.'.
+           05 ANNEE        PIC 9(4).
+
+      * TESTE LE BON DEROULEMENT DU PROGRAMME
+      * CODE 0 : AUCUNE ERREUR
+      * CODE 4 : PROBLEME DANS LE TRAITEMENT DES DATA
+      * CODE 8 : TRAITEMENT ABANDONNER A CAUSE D'UNE ERREUR
+      *          DANS L'ALGORITHME OU STOPPE LE PROGRAMME
+       01 WS-RETURN-CODE  PIC 9    VALUE 0.                             00610027
+           88 OK       VALUE 0.                                         00620027
+           88 WARNING  VALUE 4.                                         00630027
+           88 KO       VALUE 8.                                         00640027
+      *PICTURE POUR AFFICHER LES MESSAGE D'ERREUR DB2
+       01 MSG-ERR.                                                      00660033
+           05 ERR-LEN  PIC S9(4) COMP VALUE +720.                       00670033
+           05 ERR-TXT  PIC X(72) OCCURS 10 TIMES  INDEXED BY IX-ERR.    00680044
+       77 LEN-ERR-TXT  PIC S9(9) COMP VALUE +72.                        00690033
+
+      * CODE POUR FAIRE FONCTIONNER SQL DB2 DANS LE COBOL               00650024
+           EXEC SQL                                                     00710033
+              INCLUDE SQLCA                                             00720033
+           END-EXEC.                                                    00730033
+                                                                        00740033
+      * CODE POUR FAIRE FONCTIONNER SQL DB2 DANS LE COBOL               00650024
+           EXEC SQL                                                     00750033
+              INCLUDE HISTOK                                            00760096
+           END-EXEC.                                                    00770033
+                                                                        00780035
+                                                                        00880033
+       PROCEDURE DIVISION.                                              00890011
+      *---------------------------------                                00900093
+      *  INITIALISATION                                                 00910093
+      *---------------------------------                                00920093
+       M01-INITIALISE SECTION.                                          00930093
+      *---------------------------------
+      * CORP DU PROGRAMME. DEMMARRE TOUTES LES SECTIONS.
+       INIT.                                                            00940093
+      *============                                                     01910034
+      * OPEN INPUT MAITRE FILE AND OUTPUT SQL                           00950035
+           PERFORM MD02-OPEN-I-O                                        00960094
+           PERFORM LECTURE-FMVT-S                                       00970094
+      *  LECTURE DE CHAQUE ENREGISTREMENT DE FMVT-S ET SQL              00990094
+           PERFORM MD03-TRAITEMENT UNTIL FIN-FMVT-S                     01000094
+           PERFORM MD05-FIN-TRAITEMENT                                  01010035
+           STOP RUN.                                                    01020094
+       MD02-OPEN-I-O SECTION.                                           01030094
+      *---------------------------------
+      *
+       OPEN-FMVT-S.                                                     01040094
+      *===============                                                  01050014
+      * OUVRE LE FICHIER MAITRE SEQUENTIEL FMVTS EN ENTRER.
+      * TESTE L'OUVERTURE ET RETOURNE UN MESSAGE D'ERREUR
+      * ET LE STATUS DU FICHIER EN CAS DE PROBLEME D'OUVERTURE
+      * RETURN : FMVT-S-OUVERT
+      * RETURN ÈDEBUGË : PROBLEME D'OUVERTURE DU FICHIER
+           OPEN INPUT FMVT-S                                            01060094
+           IF WS-STATUS-FMVT-S NOT = ZERO                               01070094
+              DISPLAY " PROGRAMME PROJET2, VERSION 1.0"                 01080095
+              DISPLAY " ERREUR D'OUVERTURE FMVT-S"                      01090094
+              DISPLAY " CODE RETOUR " WS-STATUS-FMVT-S                  01100094
+              SET WARNING TO TRUE                                       01110024
+           ELSE                                                         01120024
+              SET FMVT-S-OUVERT TO TRUE                                 01130094
+           END-IF.                                                      01140030
+       OPEN-F-ETAT.                                                     01040094
+      *===============                                                  01050014
+      * OUVRE PFORI DU JCL POUR AFFICHER LES ANOMALIE DANS LES LOGS
+      * RETURN : F-ETAT-OUVERT
+      * RETURN ÈDEBUGË : PROBLEME D'OUVERTURE DU FICHIER
+           OPEN OUTPUT F-ETAT                                           01060094
+           IF WS-STATUS-FETAT NOT = ZERO                                01070094
+              DISPLAY " PROGRAMME PROJET2, VERSION 1.0"                 01080095
+              DISPLAY " ERREUR D'OUVERTURE F-ETAT"                      01090094
+              DISPLAY " CODE RETOUR " WS-STATUS-FETAT                   01100094
+              SET WARNING TO TRUE                                       01110024
+           ELSE                                                         01120024
+             SET F-ETAT-OUVERT TO TRUE                                  01130094
+           END-IF.                                                      01140030
+
+       HEADER.
+      *============                                                     01910034
+      * ECRIT L'ENTETE DE LA FEUILLE D'IMPRESSION DANS FETAT
+           WRITE ENR-FETAT FROM WS-HEADER-1 AFTER ADVANCING 1 LINE
+           WRITE ENR-FETAT FROM WS-HEADER-2 AFTER ADVANCING 1 LINE
+           WRITE ENR-FETAT FROM WS-HEADER-1 AFTER ADVANCING 1 LINE
+           WRITE ENR-FETAT FROM WS-JUMP AFTER ADVANCING 1 LINE
+           WRITE ENR-FETAT FROM WS-JUMP AFTER ADVANCING 1 LINE
+           WRITE ENR-FETAT FROM WS-HEADER-COLUMN AFTER ADVANCING 1 LINE.
+
+       OPEN-I-O-EXIT.
+      *============                                                     01910034
+           EXIT.
+      *---------------------------------                                01150019
+      *  TRAITEMENT PRINCIPAL                                           01160019
+      *---------------------------------                                01170019
+       MD03-TRAITEMENT SECTION.                                         01180094
+      *---------------------------------
+      *
+       LECTURE-SQL-TRT.                                                 01290080
+      *============                                                     01300080
+      * AFFICHER LIGNE PAR LIGNE LES PRIX DES PRODUIT (IO_PRIX_PRDT)    01310080
+      * ET LEURS NOMS (IO_LIB_PRDT) DE LA REQUETTE SQL SELECT
+           EXEC SQL
+             SELECT IO_PRIX_PRDT, IO_LIB_PRDT
+             INTO :IO-PRIX-PRDT, :IO-LIB-PRDT
+             FROM HISTOK
+             WHERE IO_CODE_PRDT =  :IO-CODE-PRDT
+           END-EXEC
+      * TEST SI IL Y A UNE ERREUR SQL ET AFFICHE UN DEBUGAGE DAS SYSOUT
+           IF SQLCODE < ZERO AND SQLCODE NOT = -305
+              DISPLAY "STEP 1 : SELECT SQL ERREUR"
+              DISPLAY "SQLCODE      : " SQLCODE
+              DISPLAY "IO-PRIX-PRDT : " IO-PRIX-PRDT
+              DISPLAY "IO-LIB-PRDT  : " IO-LIB-PRDT
+              DISPLAY "IO-CODE-PRDT : " IO-CODE-PRDT
+              GO TO ERREUR-SQL
+           END-IF.
+
+       CURRENT-DATE.
+      *============                                                     01300080
+      * PERMET DE TROUVER LA DATE D'AUJOURD'HUI POUR METTRE LA DATE
+      * DE MISE A JOUR DES PRODUIT DANS LA TABLE DB2 DURANT L'UPDATE SQL
+      * RESUTAL FINAL AFFECTER DANS (IO-DATE-MAJ)
+           MOVE FUNCTION CURRENT-DATE TO WS-DATE
+           MOVE JJ   OF WS-DATE TO JOUR  OF WS-DATE-DB2
+           MOVE MM   OF WS-DATE TO MOIS  OF WS-DATE-DB2
+           MOVE AAAA OF WS-DATE TO ANNEE OF WS-DATE-DB2.
+
+       UPDATE.
+      *============                                                     01910034
+      * AFFECTATION DES VARIABLE POUR FAIRE L'UPDATE SQL DB2.
+      * AFFECTATION DES VARIABLE DANS LES LIGNES (ROWS)
+      * POUR L'AFFICHE DANS FETAT
+           MOVE SPACES TO WS-ROWS
+           MOVE IO-CODE-PRDT     TO WS-ROW-CODE-PRDT
+           MOVE IO-LIB-PRDT      TO WS-ROW-LIB-PRDT
+           MOVE IO-PRIX-PRDT     TO WS-ROW-OLD-PRIX
+           MOVE WS-ENR-PRIX-PRDT TO WS-ROW-NEW-PRIX IO-PRIX-PRDT
+           MOVE WS-DATE-DB2 TO IO-DATE-MAJ
+           ADD  WS-ENR-PRIX-PRDT TO WS-MONTANT-TOTAL.
+
+
+       UPDATE-SQL-TRT.                                                  01430080
+      *============                                                     01910034
+      * METS A JOUT LA TABLE SQL HISTOK
+           EXEC SQL
+              UPDATE HISTOK
+              SET IO_PRIX_PRDT = :IO-PRIX-PRDT,
+                  IO_DATE_MAJ = :IO-DATE-MAJ
+                  WHERE IO_CODE_PRDT = :IO-CODE-PRDT
+           END-EXEC
+      *  VARIABLE QUI COMPTE LE NOMBRE DE PRODUIT MISE @ JOUR.
+           ADD 1 TO WS-NB-PRDT-MAJ
+
+      * TEST SI IL Y A UNE ERREUR SQL ET AFFICHE UN DEBUGAGE DAS SYSOUT
+           IF SQLCODE < ZERO AND SQLCODE NOT = -305
+              DISPLAY "STEP 2 : UPDATE SQL ERREUR"
+              DISPLAY "SQLCODE      : " SQLCODE
+              DISPLAY "IO-PRIX-PRDT : " IO-PRIX-PRDT
+              DISPLAY "IO-LIB-PRDT  : " IO-LIB-PRDT
+              DISPLAY "IO-CODE-PRDT : " IO-CODE-PRDT
+              GO TO ERREUR-SQL
+           END-IF.
+
+       DISPLAY-SQL-TRT.                                                 01570094
+      *============                                                     01580094
+      * ECRIS L'IMPRESSION DANS FETAT
+           WRITE ENR-FETAT FROM WS-ROWS AFTER ADVANCING 1 LINE          01590094
+           ADD 1 TO WS-NB-ENR-ECR-FETAT.
+
+       LECTURE-FMVT-S.                                                  01650094
+      *============                                                     01660034
+      * LIS LE FICHIER SEQUENTIEL MAITRE FMVT-S                         01670094
+      * ET GERE LES ERREURS D'OUVERTURE.                                01680035
+      *
+      * COMPTE LE NOMBRE D'ENREGISTREMENT LU SI ON VA PAS
+      * A LA FIN DU FICHIER OU FERME LA BOUCLE DE LA
+      * SECTION TRAITEMENT
+      *
+      * EN CAS D'ERREUR AFFICHE UN PROBLEME DE TRAITEMENT
+      * RETURN : LE STATUS DU FICHIER
+      * RETURN : LE NOMBRE DE LECTURE
+           READ FMVT-S INTO WS-ENR-FMVTS                                01690095
+           AT END                                                       01700027
+              SET FIN-FMVT-S TO TRUE                                    01710094
+           NOT AT END                                                   01720027
+              IF WS-STATUS-FMVT-S NOT = ZERO                            01730094
+                 DISPLAY "PROBLEME DE LECTURE FMVT-S"                   01740094
+                 DISPLAY "CODE RETOUR " WS-STATUS-FMVT-S                01750094
+                                                                        01760029
+                 IF WS-STATUS-FMVT-S (1:1) = "3" OR "4"                 01770094
+                    SET KO TO TRUE                                      01780029
+                 ELSE                                                   01790029
+                    SET WARNING TO TRUE                                 01800029
+                 END-IF                                                 01810029
+               ELSE
+                  MOVE WS-ENR-CODE-PRDT TO IO-CODE-PRDT
+                  ADD 1 TO WS-NB-ENR-LUS-FMVT-S
+               END-IF                                                   01820027
+           END-READ.                                                    01830068
+
+       TRAITEMENT-EXIT.
+      *============                                                     01910034
+           EXIT.
+       MD04-ERREUR SECTION.
+      *---------------------------------
+      *
+       ERREUR-SQL.                                                      01900035
+      *============                                                     01910034
+      * AFFICHE LES ERREURS SQL DB2 ET STOPPE LE TRAITEMENT SQL
+      * AFFICHE UNE ERREUR SQL SI SQLCODE EST A -1                      01920035
+      * ET N'EST PAS EGAL @ -305                                        01930035
+           CALL 'DSNTIAR' USING SQLCA MSG-ERR LEN-ERR-TXT               01950035
+           DISPLAY MSG-ERR                                              01960035
+           SET KO TO TRUE.
+                                                                        01970064
+       ERREUR-EXIT.
+      *============                                                     01910034
+           EXIT.
+      *---------------------------------                                01990034
+      * FIN DE TRAITEMENT                                               02000020
+      *---------------------------------                                02010015
+       MD05-FIN-TRAITEMENT SECTION.                                     02020094
+      *---------------------------------                                02010015
+      *
+       TOTAL-STOCK.
+      *============                                                     01910034
+      * AFFICHE LE MONTANT TOTAL DES PRIX MIS @ JOURS
+           WRITE ENR-FETAT FROM WS-JUMP AFTER ADVANCING 1 LINE
+           WRITE ENR-FETAT FROM WS-JUMP AFTER ADVANCING 1 LINE
+           MOVE  WS-MONTANT-TOTAL TO WS-TOTAL
+           WRITE ENR-FETAT FROM WS-TOTAL-STOCK.
+
+       CLOSE-FMVT-S.                                                    02030035
+      *============                                                     02040034
+      * FERME LE FICHIER SEQUENTIEL MAITRE FMVTS
+      * ET TEST S'IL Y A UNE ERREUR DE FERMETURE
+      *
+      * VALUE FANO-OUVERT ÈPRODË : EN CAS DE MODIFICATION DU PROGRAMME
+      *
+      * VALUE WS-STATUS-FANO ÈDEBUGË : RETOURN LE STATUS DU FICHIER
+      *
+      * VALUE KO : CODE D'ERREUR 8,ABANDONNE LE TRAITEMENT
+           IF FMVT-S-OUVERT                                             02070094
+              CLOSE FMVT-S                                              02080094
+              IF WS-STATUS-FMVT-S NOT = ZERO                            02090094
+                 DISPLAY "PROBLEME DE FERMETURE FMVT-S"                 02100094
+                 DISPLAY "CODE RETOUR " WS-STATUS-FMVT-S                02110094
+                 SET KO TO TRUE                                         02120024
+              END-IF                                                    02130024
+           END-IF.                                                      02140024
+                                                                        02150035
+       CLOSE-F-ETAT.                                                    02030035
+      *============                                                     02040034
+      * FERME LE FICHIER SEQUENTIEL  F-ETAT
+      * ET TEST S'IL Y A UNE ERREUR DE FERMETURE
+      *
+      * VALUE  FMVT-S-OUVERT ÈPRODË :EN CAS DE MODIFICATION DU PROGRAMME
+      *
+      * VALUE WS-STATUS-FETATÈDEBUGË : RETOURN LE STATUS DU FICHIER
+      * TEST SI LE NOM INTERNE FMVT-S EST OUVERT POUR                   02050094
+      * LE FERMER                                                       02060035
+           IF FMVT-S-OUVERT                                             02070094
+              CLOSE FMVT-S                                              02080094
+              IF WS-STATUS-FETAT NOT = ZERO                             02090094
+                 DISPLAY "PROBLEME DE FERMETURE FMVT-S"                 02100094
+                 DISPLAY "CODE RETOUR " WS-STATUS-FMVT-S                02110094
+                 SET KO TO TRUE                                         02120024
+              END-IF                                                    02130024
+           END-IF.                                                      02140024
+       RAPPORT.
+      *============                                                     01910034
+      * AFFICHE LES STATISTIQUES D'ENTREE / SORTIE
+      *
+      * VALUE WARNING ÈDEBUGË : TESTE L'OUVERTURE DES FICHIERS
+      *
+      * VALUE WS-NBENR-LUS-FMVT-S ÈDEBUGË : TEST S'IL Y A
+      * EU 0 LECTURE DANS LE FICHIER SEQUENTIEL MAITRE FMVTE
+      *
+      * VALUE KO ÈDEBUG/PRODË : TESTE S'IL Y A UNE ERREUR DANS
+      * DANS LA LOGIQUE ET L'ALGORITHME.
+      * STOP LE BATCH EN CAS D'ERREUR DANS LA PRODUCTION
+      *
+      * RETURN : WS-RETURN-CODE
+           EVALUATE TRUE
+              WHEN OK
+                DISPLAY "**********************************************"
+                DISPLAY "*   STATISTIQUE D'ENTREE / SORTIE"
+                DISPLAY "**********************************************"
+                DISPLAY "* NOMBRE D'ENREGISTREMENT LU  : "
+                 WS-NB-ENR-LUS-FMVT-S
+                DISPLAY "* NOMBRE DE PRODUIT MIS A JOUR: "
+                 WS-NB-PRDT-MAJ
+                DISPLAY "* NOMBRE D'ENREGISTREMET D'ETAT : "
+                 WS-NB-ENR-ECR-FETAT
+                DISPLAY "**********************************************"
+                DISPLAY "* PROGRAMME PROJET2 : FIN NORMAL DU TRAITEMENT"
+                DISPLAY "**********************************************"
+              WHEN WARNING
+               IF WS-NB-ENR-LUS-FMVT-S = 0
+                DISPLAY "**********************************************"
+                DISPLAY "* PROGRAMME PROJET2 : PAS DE TRAITEMENT       "
+                DISPLAY "* CODE RETOUR " WS-RETURN-CODE
+                DISPLAY "**********************************************"
+               ELSE
+                DISPLAY "**********************************************"
+                DISPLAY "* PROGRAMME PROJET2 : PAS DE TRAITEMENT"
+                DISPLAY "* CODE RETOUR " WS-RETURN-CODE
+                DISPLAY "* FIN ANORMAL DU TRAITEMENT "
+                DISPLAY "* PROBLEME  BLOQUANT "
+               END-IF
+              WHEN OTHER
+                DISPLAY "**********************************************"
+                DISPLAY "* PROGRAMME PROJET2 : ABEND"
+                DISPLAY "* CODE RETOUR " WS-RETURN-CODE
+                DISPLAY "**********************************************"*"
+                STOP RUN
+           END-EVALUATE
+           MOVE WS-RETURN-CODE TO RETURN-CODE.
+       FIN.
+      *============                                                     01910034
+           EXIT.

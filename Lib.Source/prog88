@@ -1,0 +1,17 @@
+       IDENTIFICATION DIVISION.                                         00010002
+       PROGRAM-ID. PROG88.                                              00020006
+       AUTHOR. JULIEN DUBROMEZ.                                         00030002
+       ENVIRONMENT DIVISION.                                            00040002
+       CONFIGURATION SECTION.                                           00050002
+       SPECIAL-NAMES.                                                   00060002
+           DECIMAL-POINT IS COMMA.                                      00070002
+       INPUT-OUTPUT SECTION.                                            00080002
+       FILE-CONTROL.                                                    00090002
+       DATA DIVISION.                                                   00100002
+       WORKING-STORAGE SECTION.                                         00110002
+       LINKAGE SECTION.                                                 00120007
+       01 LNBR PIC 99.                                                  00130005
+       PROCEDURE DIVISION USING LNBR.                                   00140005
+           COMPUTE LNBR = LNBR * 2                                      00150007
+           DISPLAY 'LNBR = ' LNBR                                       00160007
+           GOBACK.                                                      00170005

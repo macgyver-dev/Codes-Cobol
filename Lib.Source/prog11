@@ -1,0 +1,43 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. PROG11.                                              00020038
+       AUTHOR. JULIEN.                                                  00030036
+      * TABLEAU REDEFINES                                               00040032
+                                                                        00050032
+       ENVIRONMENT DIVISION.                                            00060000
+       CONFIGURATION SECTION.                                           00070000
+       SPECIAL-NAMES.                                                   00080000
+           DECIMAL-POINT IS COMMA.                                      00090000
+                                                                        00100000
+       INPUT-OUTPUT SECTION.                                            00110006
+       FILE-CONTROL.                                                    00120006
+                                                                        00130006
+       DATA DIVISION.                                                   00140000
+       FILE SECTION.                                                    00150006
+       WORKING-STORAGE SECTION.                                         00160006
+       01 TABLEAU REDEFINES CHAMPS.                                     00170039
+           05 POSTE OCCURS 12.                                          00180045
+              10 NUMMOIS PIC 99.                                        00190018
+              10 LIBELLE PIC 99.                                        00200048
+       77 I PIC 9(2) VALUE 0.                                           00210040
+       77 J PIC 9(2) VALUE 0.                                           00220040
+       77 TMP PIC X(11).                                                00230045
+       PROCEDURE DIVISION.                                              00240000
+       PERFORM TRAITEMENT UNTIL I > 12.                                 00250047
+       TRAITEMENT.                                                      00260036
+      *==========================                                       00270036
+           ADD  1 TO I                                                  00280045
+           IF I > 12                                                    00290046
+               DISPLAY TABLEAU                                          00300046
+               STOP RUN                                                 00310046
+           ELSE                                                         00320045
+             COMPUTE J = I + 1                                          00330046
+             IF J > I                                                   00340046
+                IF NUMOIS(I) > NUMOIS(J)                                00350047
+                  MOVE  POSTE(I) TO TMP                                 00360047
+                  MOVE POSTE(J) TO POSTE(I)                             00370047
+                  MOVE TMP TO POSTE(J)                                  00380047
+                END-IF                                                  00390047
+                COMPUTE J = J +1                                        00400046
+             END-IF.                                                    00410048
+       FIN.                                                             00420037
+           DISPLAY TABLEAU.                                             00430037

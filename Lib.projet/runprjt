@@ -1,0 +1,48 @@
+//FORI05E  JOB (),CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID                     00011099
+//COBBTCH EXEC ICOBBTCH,PGMB=PROJET1,GRPEHLQ='FORI05'                   00020099
+//SYSLINK DD DSN=FORI05.LIB.LOAD,DISP=SHR                               00030099
+//LKED.SYSIN DD *                                                       00040000
+  ENTRY PROJET1                                                         00050099
+  NAME  PROJET1(R)                                                      00060099
+//SYSPRINT DD SYSOUT=*                                                  00070099
+//SYSOUT DD SYSOUT=*                                                    00080050
+//RUNBIN   EXEC PGM=PROJET1,TIME=(,2)                                   00090099
+//STEPLIB  DD DSN=FORI05.LIB.LOAD,DISP=SHR                              00110099
+//FMVTE    DD DSN=FORI05.SEQ.FMVTE,DISP=SHR                             00130099
+//FMVTS    DD DSN=FORI05.SEQ.FMVTS,DISP=SHR                             00150099
+//*FMVTE   DD DSN=FORI05.SEQ.FMVTE,DISP=(,CATLG,DELETE),                00160099
+//*    SPACE=(TRK,(1,1)),RECFM=FB,LRECL=80,BLKSIZE=800                  00180099
+//*FMVTS   DD DSN=FORI05.SEQ.FMVTS,DISP=(,CATLG,DELETE),                00200099
+//*    SPACE=(TRK,(1,1)),RECFM=FB,LRECL=80,BLKSIZE=800                  00220099
+//FANO     DD SYSOUT=*                                                  00240099
+//SYSPRINT DD SYSOUT=*                                                  00260099
+//*SYSOUT   DD SYSOUT=*,OUTLIM=100                                      00280099
+//*--------------------------------------------------------------*      00290099
+//*---     PROCEDURE DE COMPILATION DES PROGRAMMES BATCH/DB2  ---*      00310099
+//*--------------------------------------------------------------*      00330099
+//PGMB    EXEC ICOBBTDB,PGMB=PROJET2,OUTC=I                             00350099
+//LKED.SYSIN DD  *                                                      00370099
+  INCLUDE SYSLIB(DSNELI)                                                00390099
+  NAME PROJET2(R)                                                       00410099
+//*                                                                     00430099
+//BIND.SYSIN DD  *                                                      00440099
+  DSN SYSTEM(DB2F)                                                      00460099
+  BIND PACKAGE(COLLFORI),MEMBER(PROJET2) -                              00480099
+  LIBRARY('FORI05.LIB.DBRM') ACTION (REPLACE) VALIDATE (BIND) -         00500099
+  QUALIFIER(FORI05)  ISOLATION(CS)                                      00520099
+//*                                                                     00540099
+//RUN     EXEC PGM=IKJEFT01,TIME=(0,5)                                  00670099
+//STEPLIB DD  DISP=SHR,DSN=DB2F.SDSNEXIT                                00680099
+//        DD  DISP=SHR,DSN=DB2F.RUNLIB.LOAD                             00690099
+//        DD  DISP=SHR,DSN=CEE.SCEERUN                                  00700099
+//FMVTS    DD DSN=FORI05.SEQ.FMVTS,DISP=SHR                             00710099
+//SYSPRINT DD SYSOUT=*                                                  00720099
+//SYSTSPRT DD SYSOUT=*                                                  00730099
+//PFORI    DD SYSOUT=*                                                  00740099
+//SYSOUT   DD SYSOUT=*                                                  00750099
+//SYSTSIN  DD  *                                                        00760099
+  DSN SYSTEM(DB2F)                                                      00770099
+  RUN PROGRAM(PROJET2) PLAN(PLANFORI) -                                 00780099
+  LIBRARY('FORI99.LIB.LOAD')                                            00790099
+  END                                                                 //00800099
+//                                                                      00810099

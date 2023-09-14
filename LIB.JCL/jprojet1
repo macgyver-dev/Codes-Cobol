@@ -1,0 +1,19 @@
+//FORI05E  JOB (),CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID                     00011099
+//COBBTCH EXEC ICOBBTCH,PGMB=PROJET1,GRPEHLQ='FORI05'                   00020099
+//SYSLINK DD DSN=FORI05.LIB.LOAD,DISP=SHR                               00030099
+//LKED.SYSIN DD *                                                       00040000
+  ENTRY PROJET1                                                         00050099
+  NAME  PROJET1(R)                                                      00060099
+//SYSPRINT DD SYSOUT=*                                                  00070099
+//SYSOUT DD SYSOUT=*                                                    00080050
+//RUNBIN   EXEC PGM=PROJET1,TIME=(,2)                                   00090099
+//STEPLIB  DD DSN=FORI05.LIB.LOAD,DISP=SHR                              00110099
+//FMVTE    DD DSN=FORI05.SEQ.FMVTE,DISP=SHR                             00130099
+//FMVTS    DD DSN=FORI05.SEQ.FMVTS,DISP=SHR                             00150099
+//*FMVTE   DD DSN=FORI05.SEQ.FMVTE,DISP=(,CATLG,DELETE),                00160099
+//*    SPACE=(TRK,(1,1)),RECFM=FB,LRECL=80,BLKSIZE=800                  00180099
+//*FMVTS   DD DSN=FORI05.SEQ.FMVTS,DISP=(,CATLG,DELETE),                00200099
+//*    SPACE=(TRK,(1,1)),RECFM=FB,LRECL=80,BLKSIZE=800                  00220099
+//FANO     DD SYSOUT=*                                                  00240099
+//SYSPRINT DD SYSOUT=*                                                  00260099
+//SYSOUT   DD SYSOUT=*,OUTLIM=100                                       00280099

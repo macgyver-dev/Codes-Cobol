@@ -1,0 +1,41 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. MONPROG2.                                            00020001
+       AUTHOR. Julien Dubromez.                                         00030000
+                                                                        00040000
+       ENVIRONMENT DIVISION.                                            00050000
+       CONFIGURATION SECTION.                                           00060000
+       SPECIAL-NAMES.                                                   00070000
+            DECIMAL-POINT IS COMMA.                                     00080000
+       INPUT-OUTPUT SECTION.                                            00090000
+       FILE-CONTROL.                                                    00100000
+           SELECT LISTE ASSIGN TO DDLISTE.                              00110004
+                                                                        00120000
+       DATA DIVISION.                                                   00130004
+       FILE SECTION.                                                    00140004
+       FD  LISTE                                                        00150004
+           RECORDING MODE IS F                                          00160000
+           DATA RECORD ENREG.                                           00170000
+                                                                        00180000
+       01 ENREG.                                                        00190004
+           05 NBR PIC 99.                                               00200004
+           05 FILLER PIC X(78).                                         00210004
+                                                                        00220000
+       WORKING-STORAGE SECTION.                                         00230004
+       77 MAX PIC 99 VALUE 0.                                           00240004
+       77 EOF PIC 9 VALUE 0.                                            00250004
+                                                                        00260000
+       PROCEDURE DIVISION.                                              00270004
+       DEBUT.                                                           00280004
+           OPEN INPUT LISTE.                                            00290004
+       LECTURE.                                                         00300004
+           READ LISTE                                                   00310005
+           AT END                                                       00320005
+             DISPLAY 'LE NOMBRE LE PRLUS GRAND EST ' MAX                00330005
+             CLOSE LISTE                                                00340005
+             STOP RUN                                                   00350005
+           END-READ                                                     00360005
+           IF NBR > MAX                                                 00370004
+              MOVE NBR TO MAX                                           00380003
+           END-IF                                                       00390005
+                                                                        00400002
+           GO TO LECTURE.                                               00410004

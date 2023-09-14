@@ -1,0 +1,26 @@
+//FORI05A  JOB ICCTFORI,CLASS=I,MSGCLASS=I,NOTIFY=&SYSUID,              00010008
+//         RESTART=CREATE                                               00020008
+//*1) SUPPRIMER UN FICHIER SEQUENTIEL EXISTANT                          00030004
+//*2) LE RECREER                                                        00040004
+//*3) FAIRE UNE COPIE DE FICHIER DANS LE FICHIER CREE                   00050004
+//DELETE   EXEC PGM=IEFBR14                                             00060004
+//FICH1    DD DSN=FORI05.SEQ.PERSONNE,DISP=(SHR,DELETE,DELETE)          00070004
+//SYSPRINT DD SYSOUT=*                                                  00080002
+//*                                                                     00090004
+//CREATE   EXEC PGM=IEFBR14                                             00100004
+//FICH1    DD DSN=FORI05.SEQ.PERSONNE,DISP=(,CATLG,DELETE),             00110005
+//         SPACE=(TRK,(1,1)),RECFM=FB,LRECL=80,BLKSIZE=800              00120007
+//*                                                                     00130004
+//SPTEP2   EXEC PGM=IEBGENER                                            00140004
+//SYSUT1   DD *                                                         00150003
+ORIANNE                                                                 00160002
+JULIEN X 2                                                              00170002
+FRANCK                                                                  00180002
+WLADIMIR                                                                00190002
+PATRICE                                                                 00200002
+MAXIME                                                                  00210002
+ADDERAHIME                                                              00220002
+EL HOCINE                                                               00230002
+//SYSUT2 DD DSN=FORI05.SEQ.PERSONNE,DISP=SHR                            00240004
+//SYSIN DD DUMMY                                                        00250002
+//SYSPRINT DD SYSOUT=*                                                  00260002

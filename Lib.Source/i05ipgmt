@@ -1,0 +1,55 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. I05IPGMT.                                            00020006
+       ENVIRONMENT DIVISION.                                            00030000
+       DATA DIVISION.                                                   00040000
+       WORKING-STORAGE SECTION.                                         00050000
+           COPY I05IMAP.                                                00060004
+           COPY DFHAID.                                                 00070000
+           COPY DFHBMSCA.                                               00080000
+       77 TEXTE PIC X(60) VALUE 'GOOD BYE'.                             00090026
+       77 TEXTE-VIDE PIC X(60) VALUE 'SAISIE VIDE'.                     00100024
+       77 CR PIC S9(8) BINARY.                                          00110024
+       LINKAGE SECTION.                                                 00120000
+       PROCEDURE DIVISION.                                              00130000
+           MOVE LOW-VALUE TO I05IMAPO.                                  00140026
+           EXEC CICS                                                    00150029
+           SEND MAP('IMAP05') MAPSET('I05IMAP')                         00160029
+                FROM(I05IMAPO)                                          00170029
+                ERASE                                                   00180029
+                FREEKB                                                  00190029
+           END-EXEC                                                     00200029
+                                                                        00210001
+           EXEC CICS                                                    00220029
+             RECEIVE MAP('IMAP05') MAPSET('I05IMAP')                    00230029
+                 INTO(I05IMAPI)                                         00240029
+                 RESP(CR)                                               00250029
+           END-EXEC.                                                    00260029
+           IF CR = DFHRESP(MAPFAIL)                                     00270029
+           AND EIBAID = DFHPF3 THEN                                     00280029
+               EXEC CICS SEND TEXT                                      00290026
+                  FROM (TEXTE)                                          00300029
+                  LENGTH(60)                                            00310026
+                  ERASE                                                 00320026
+               END-EXEC                                                 00330026
+               EXEC CICS RETURN END-EXEC                                00340026
+           END-IF.                                                      00350029
+           IF FONCTL = 0 AND NUMARTL > 0                                00360029
+              MOVE 'FONCTION OBLIGATOIRE' TO MSGO                       00370029
+           END-IF.                                                      00380029
+           IF NUMARTL = 0 AND FONCTL > 0                                00390029
+              MOVE 'NUMERO ARTICLE OBLIGATOIRE' TO MSGO                 00400029
+           END-IF.                                                      00410029
+           IF FONCTL = 0 AND NUMARTL = 0                                00420029
+              MOVE 'SAISIE OBLIGATOIRE FAITES ENTER' TO MSGO            00430029
+           END-IF.                                                      00440029
+           IF FONCTL > 0 AND NUMARTL > 0                                00450029
+              MOVE 'TOUS EST OK' TO MSGO                                00460029
+           END-IF.                                                      00470029
+           MOVE LOW-VALUE TO I05IMAPO.                                  00480029
+           EXEC CICS                                                    00490029
+           SEND MAP('IMAP05') MAPSET('I05IMAP')                         00500029
+                FROM(I05IMAPO)                                          00510029
+                ERASE                                                   00520029
+                FREEKB                                                  00530029
+           END-EXEC                                                     00540029
+           EXEC CICS RETURN TRANSID('I00I') END-EXEC                    00550029
